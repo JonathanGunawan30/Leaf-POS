@@ -1,24 +1,28 @@
-
 <script setup>
-    import { ref } from 'vue';
-    import { useForm } from '@inertiajs/vue3';
-    const successMessage = ref('');
-    const submittedEmail = ref('');
-    const form = useForm({
-        email: '',
-    });
-    // const handleSubmit = async () => {
-    //     try {
-    //         submittedEmail.value = form.email; // Store email before form reset
-    //         await form.post(route('password.email'), {
-    //             onSuccess: () => {
-    //                 form.reset();
-    //             },
-    //         });
-    //     } catch (error) {
-    //         console.error('Error:', error);
-    //     }
-    // };
+import { ref } from 'vue';
+import axios from 'axios';
+
+const successMessage = ref(false);
+const submittedEmail = ref('');
+const email = ref('');
+const error = ref('');
+const isLoading = ref(false);
+const handleSubmit = async () => {
+    try {
+        isLoading.value = true;
+        error.value = '';
+        await axios.post('http://127.0.0.1:8000/api/forgot-password', {
+            email: email.value
+        });
+        submittedEmail.value = email.value;
+        successMessage.value = true;
+        email.value = '';
+    } catch (err) {
+        error.value = err.response?.data?.message || 'Something went wrong';
+    } finally {
+        isLoading.value = false;
+    }
+};
 </script>
 <template>
     <div class="min-h-screen flex items-center justify-center bg-gray-50 forgot">
@@ -36,9 +40,9 @@
                             <div class="relative">
                                 <input 
                                     type="email" 
-                                    v-model="form.email" 
-                                    class="w-full p-3  border rounded-lg focus:ring focus:ring-green-300" 
-                                    :class="{ 'border-red-500': form.errors.email }"
+                                    v-model="email" 
+                                    class="w-full p-3 border rounded-lg focus:ring focus:ring-green-300" 
+                                    :class="{ 'border-red-500': error }"
                                     placeholder="LeafPost@gmail.com"
                                     required 
                                 />
@@ -49,15 +53,15 @@
                                     </svg>
                                 </span>
                             </div>
-                            <p v-if="form.errors.email" class="text-red-500 font-lighttext-sm mt-1">{{ form.errors.email }}</p>
+                            <p v-if="error" class="text-red-500 font-light text-sm mt-1">{{ error }}</p>
                         </div>
                         <div>
                             <button 
                                 type="submit" 
                                 class="w-full bg-[#2F8451] font-semibold text-white p-3 rounded-lg hover:bg-[#1F6D3D] hover:opacity-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                                :disabled="form.processing"
+                                :disabled="isLoading"
                             >
-                                <span v-if="form.processing">
+                                <span v-if="isLoading">
                                     <svg class="animate-spin -ml-1 mr-3 h-5 w-5 inline-block text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
