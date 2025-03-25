@@ -11,4 +11,11 @@ Route::get('/', function () {
         'phpVersion' => PHP_VERSION,
     ]);
 });
+Route::get('/register', function () {
+    return Inertia::render('register');
+})->middleware('guest')->name('register');
+Route::get('/forgot-password', function () {
+    return Inertia::render('forgot_password');
+});
+
 require __DIR__.'/auth.php';

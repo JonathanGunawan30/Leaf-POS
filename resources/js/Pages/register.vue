@@ -5,12 +5,23 @@ export default defineComponent({
     setup() {
         const loading = ref(false);
         const showPassword = ref(false);
-        const form = useForm({email: '', password: ''});
-        const togglePassword = () => {showPassword.value = !showPassword.value;};
+        const showConfirmPassword = ref(false);
+        const form = useForm({
+            email: '',
+            name: '',
+            password: '',
+            password_confirmation: ''
+        });
+        const togglePassword = () => {
+            showPassword.value = !showPassword.value;
+        };
+        const toggleConfirmPassword = () => {
+            showConfirmPassword.value = !showConfirmPassword.value;
+        };
         const submit = () => {
             if (loading.value) return;
             loading.value = true;
-            form.post('/login', {
+            form.post('/register', {
                 onSuccess: () => {
                     loading.value = false;
                 },
@@ -25,7 +36,15 @@ export default defineComponent({
                 }
             });
         };
-        return { form, submit, loading, showPassword, togglePassword };
+        return { 
+            form, 
+            submit, 
+            loading, 
+            showPassword, 
+            showConfirmPassword, 
+            togglePassword, 
+            toggleConfirmPassword 
+        };
     }
 });
 </script>
@@ -43,9 +62,28 @@ export default defineComponent({
         <!-- Right Side -->
         <div class="w-full md:w-2/5 flex items-center justify-center p-6">
             <div class="w-full max-w-md">
-                <h2 class="text-[50px] font-bold text-center mb-6 text-[#2F8451]">Welcome</h2>
-                <h2 class="text-[20px] font-medium text-center mb-6 text-black">Login To Your Account</h2>
+                <h2 class="text-[50px] font-bold text-center mb-2 text-[#2F8451]">Welcome</h2>
+                <h2 class="text-[20px] font-medium text-center mb-2 text-black">Create Your Account</h2>
                 <form @submit.prevent="submit" class="space-y-4">
+                    <div>
+                        <label class="block font-medium mb-3">NAME</label>
+                        <div class="relative">
+                            <input 
+                                type="text" 
+                                v-model="form.name" 
+                                class="w-full p-3  border rounded-lg focus:ring focus:ring-green-300" 
+                                :class="{ 'border-red-500': form.errors.name }"
+                                placeholder="LeafPost"
+                                required 
+                            />
+                            <span class="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#2F8451]">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+                                </svg>
+                            </span>
+                        </div>
+                        <p v-if="form.errors.name" class="text-red-500 font-lighttext-sm mt-1">{{ form.errors.name }}</p>
+                    </div>
                     <div>
                         <label class="block font-medium mb-3">EMAIL</label>
                         <div class="relative">
@@ -72,15 +110,14 @@ export default defineComponent({
                             <input 
                                 :type="showPassword ? 'text' : 'password'"
                                 v-model="form.password" 
-                                class="w-full p-3 pr-10 border rounded-lg focus:ring focus:ring-green-300" 
+                                class="w-full p-3 border rounded-lg focus:ring focus:ring-green-300" 
                                 :class="{ 'border-red-500': form.errors.password }"
-                                placeholder="LeafPostPassword"
+                                placeholder="Enter your password"
                                 required 
                             />
-                            <button 
-                                type="button"
-                                class="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#2F8451]"
+                            <span 
                                 @click="togglePassword"
+                                class="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#2F8451] cursor-pointer"
                             >
                                 <svg v-if="!showPassword" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                                     <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
@@ -90,14 +127,36 @@ export default defineComponent({
                                     <path fill-rule="evenodd" d="M3.707 2.293a1 1 0 00-1.414 1.414l14 14a1 1 0 001.414-1.414l-1.473-1.473A10.014 10.014 0 0019.542 10C18.268 5.943 14.478 3 10 3a9.958 9.958 0 00-4.512 1.074l-1.78-1.781zm4.261 4.26l1.514 1.515a2.003 2.003 0 012.45 2.45l1.514 1.514a4 4 0 00-5.478-5.478z" clip-rule="evenodd" />
                                     <path d="M12.454 16.697L9.75 13.992a4 4 0 01-3.742-3.741L2.335 6.578A9.98 9.98 0 00.458 10c1.274 4.057 5.065 7 9.542 7 .847 0 1.669-.105 2.454-.303z" />
                                 </svg>
-                            </button>
+                            </span>
                         </div>
+                        <p v-if="form.errors.password" class="text-red-500 font-lighttext-sm mt-1">{{ form.errors.password }}</p>
                     </div>
-                    <div class="flex justify-between items-center text-sm">
-                        <div class="flex-1">
-                            <p v-if="form.errors.password" class="text-red-500 font-light">hh{{ form.errors.password }}</p>
+                    <div>
+                        <label class="block font-medium mb-3">CONFIRM PASSWORD</label>
+                        <div class="relative">
+                            <input 
+                                :type="showConfirmPassword ? 'text' : 'password'"
+                                v-model="form.password_confirmation" 
+                                class="w-full p-3 border rounded-lg focus:ring focus:ring-green-300" 
+                                :class="{ 'border-red-500': form.errors.password_confirmation }"
+                                placeholder="Confirm your password"
+                                required 
+                            />
+                            <span 
+                                @click="toggleConfirmPassword"
+                                class="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#2F8451] cursor-pointer"
+                            >
+                                <svg v-if="!showConfirmPassword" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                                    <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd" />
+                                </svg>
+                                <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M3.707 2.293a1 1 0 00-1.414 1.414l14 14a1 1 0 001.414-1.414l-1.473-1.473A10.014 10.014 0 0019.542 10C18.268 5.943 14.478 3 10 3a9.958 9.958 0 00-4.512 1.074l-1.78-1.781zm4.261 4.26l1.514 1.515a2.003 2.003 0 012.45 2.45l1.514 1.514a4 4 0 00-5.478-5.478z" clip-rule="evenodd" />
+                                    <path d="M12.454 16.697L9.75 13.992a4 4 0 01-3.742-3.741L2.335 6.578A9.98 9.98 0 00.458 10c1.274 4.057 5.065 7 9.542 7 .847 0 1.669-.105 2.454-.303z" />
+                                </svg>
+                            </span>
                         </div>
-                        <a href="/forgot-password" class="font-light text-black ml-4">Forgot Your Password ?</a>
+                        <p v-if="form.errors.password_confirmation" class="text-red-500 font-lighttext-sm mt-1">{{ form.errors.password_confirmation }}</p>
                     </div>
                     <button 
                         type="submit" 
@@ -105,12 +164,12 @@ export default defineComponent({
                         :disabled="loading || form.processing"
                     >
                         <span v-if="loading || form.processing">Loading...</span>
-                        <span v-else>Login</span>
+                        <span v-else>Sign Up</span>
                     </button>
                 </form>
                 <p class="text-center font-light text-black mt-4">
-                    Don't have an account ?
-                    <a href="/register" class="text-green-600 font-medium hover:text-green-700">Sign Up</a>
+                    Already have an account ?
+                    <a href="/" class="text-green-600 font-medium hover:text-green-700">Login</a>
                 </p>
             </div>
         </div>
