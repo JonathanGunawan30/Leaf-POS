@@ -17,5 +17,7 @@ Route::get('/register', function () {
 Route::get('/forgot-password', function () {
     return Inertia::render('forgot_password');
 });
-
+Route::get('/dashboard', function () {
+    return Inertia::render('dashboard');
+});
 require __DIR__.'/auth.php';
