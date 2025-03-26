@@ -1,29 +1,56 @@
 <script>
 import { defineComponent, ref } from 'vue';
 import { Head, useForm } from '@inertiajs/vue3';
+import axios from 'axios';
+import Swal from 'sweetalert2';
 export default defineComponent({
     setup() {
         const loading = ref(false);
         const showPassword = ref(false);
         const form = useForm({email: '', password: ''});
         const togglePassword = () => {showPassword.value = !showPassword.value;};
-        const submit = () => {
+        const submit = async () => {
             if (loading.value) return;
             loading.value = true;
-            form.post('/login', {
-                onSuccess: () => {
-                    loading.value = false;
-                },
-                onError: (errors) => {
-                    loading.value = false;
-                    if (errors.default) {
-                        alert(errors.default);
-                    }
-                },
-                onFinish: () => {
-                    loading.value = false;
+            try {
+                const response = await axios.post('/api/users/login', {
+                    email: form.email,
+                    password: form.password
+                });
+                // Store the token in localStorage
+                if (response.data.data.token) {
+                    localStorage.setItem('token', response.data.data.token);
                 }
-            });
+                window.location.href = '/dashboard';
+            // } catch (error) {
+            //     if (error.response?.data?.errors) {
+            //         form.errors = error.response.data.errors;
+            //     } else {
+            //         alert('Login failed. Please try again.');
+            //     }
+            } catch (error) {
+                if (error.response?.data?.errors?.message) {
+                    const errors = error.response.data.errors.message;
+                    for (const key in errors) {
+                        form.errors[key] = errors[key][0];
+                    }
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Login Failed',
+                        text: Object.values(errors)[0][0],
+                        confirmButtonColor: '#2F8451'
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Login Failed',
+                        text: 'Authentication failed. Please try again.',
+                        confirmButtonColor: '#2F8451'
+                    });
+                }
+            } finally {
+                loading.value = false;
+            }
         };
         return { form, submit, loading, showPassword, togglePassword };
     }
@@ -95,7 +122,7 @@ export default defineComponent({
                     </div>
                     <div class="flex justify-between items-center text-sm">
                         <div class="flex-1">
-                            <p v-if="form.errors.password" class="text-red-500 font-light">hh{{ form.errors.password }}</p>
+                            <p v-if="form.errors.password" class="text-red-500 font-light">{{ form.errors.password }}</p>
                         </div>
                         <a href="/forgot-password" class="font-light text-black ml-4">Forgot Your Password ?</a>
                     </div>

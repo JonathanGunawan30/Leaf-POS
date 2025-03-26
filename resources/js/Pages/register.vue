@@ -1,50 +1,59 @@
 <script>
 import { defineComponent, ref } from 'vue';
 import { Head, useForm } from '@inertiajs/vue3';
+import axios from 'axios';
+import Swal from 'sweetalert2';
 export default defineComponent({
+    components: {
+        Head
+    },
     setup() {
         const loading = ref(false);
         const showPassword = ref(false);
         const showConfirmPassword = ref(false);
-        const form = useForm({
-            email: '',
-            name: '',
-            password: '',
-            password_confirmation: ''
-        });
-        const togglePassword = () => {
-            showPassword.value = !showPassword.value;
-        };
-        const toggleConfirmPassword = () => {
-            showConfirmPassword.value = !showConfirmPassword.value;
-        };
-        const submit = () => {
+        const form = useForm({name: '', email: '', password: '', password_confirmation: ''});
+        const togglePassword = () => {showPassword.value = !showPassword.value;};
+        const toggleConfirmPassword = () => {showConfirmPassword.value = !showConfirmPassword.value;};
+        const submit = async () => {
             if (loading.value) return;
+            if (form.password !== form.password_confirmation) {
+                form.errors.password_confirmation = 'Password confirmation does not match';
+                return;
+            }
             loading.value = true;
-            form.post('/register', {
-                onSuccess: () => {
-                    loading.value = false;
-                },
-                onError: (errors) => {
-                    loading.value = false;
-                    if (errors.default) {
-                        alert(errors.default);
+            try {
+                const response = await axios.post('/api/users', {
+                    name: form.name,
+                    email: form.email,
+                    password: form.password,
+                    password_confirmation: form.password_confirmation
+                });
+               window.location.href = '/';
+            } catch (error) {
+                if (error.response?.data?.errors?.message) {
+                    const errors = error.response.data.errors.message;
+                    for (const key in errors) {
+                        form.errors[key] = errors[key][0];
                     }
-                },
-                onFinish: () => {
-                    loading.value = false;
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Registration Failed',
+                        text: 'Registration failed. Please try again.',
+                        confirmButtonColor: '#2F8451'
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Registration Failed',
+                        text: 'Registration failed. Please try again.',
+                        confirmButtonColor: '#2F8451'
+                    });
                 }
-            });
+            } finally {
+                loading.value = false;
+            }
         };
-        return { 
-            form, 
-            submit, 
-            loading, 
-            showPassword, 
-            showConfirmPassword, 
-            togglePassword, 
-            toggleConfirmPassword 
-        };
+        return {form, submit, loading, showPassword, togglePassword, showConfirmPassword, toggleConfirmPassword};
     }
 });
 </script>
