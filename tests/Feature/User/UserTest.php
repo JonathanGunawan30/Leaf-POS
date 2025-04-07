@@ -178,4 +178,208 @@ describe("DELETE /api/users/logout", function (){
     });
 });
 
+describe("PATCH /api/admin/users/{id}/status", function (){
+    beforeEach(function () {
+        $this->adminRole = \App\Models\Role::create(['name' => 'Admin']);
+        $this->userRole = \App\Models\Role::create(['name' => 'User']);
+
+        $this->admin = \App\Models\User::create([
+            'name' => 'Admin',
+            'email' => 'admin@example.com',
+            'password' => bcrypt('password'),
+            'role_id' => $this->adminRole->id,
+            'status' => 'active'
+        ]);
+
+        $this->user = \App\Models\User::create([
+            'name' => 'User',
+            'email' => 'user@example.com',
+            'password' => bcrypt('password'),
+            'role_id' => $this->userRole->id,
+            'status' => 'inactive'
+        ]);
+    });
+
+    afterEach(function () {
+        \App\Models\User::query()->delete();
+        \App\Models\Role::query()->delete();
+    });
+    it("Should be successfully update user status", function () {
+        \Laravel\Sanctum\Sanctum::actingAs($this->admin);
+
+        $response = $this->patchJson("/api/admin/users/{$this->user->id}/status", [
+            'status' => 'active'
+        ]);
+
+        dump($response->json());
+
+        expect($response)->status()->toBe(200);
+        expect($response->json('data.message'))->toBe('User status updated successfully.');
+        expect($response->json('data.user.status'))->toBe('active');
+
+        \Pest\Laravel\assertDatabaseHas('users', [
+            'id' => $this->user->id,
+            'status' => 'active'
+        ]);
+    });
+
+    it("Should fail if status is missing", function () {
+        \Laravel\Sanctum\Sanctum::actingAs($this->admin);
+
+        $response = $this->patchJson("/api/admin/users/{$this->user->id}/status", []);
+
+        dump($response->json());
+
+        expect($response)->status()->toBe(400);
+        expect($response->json('errors.message.status.0'))->toBe('The status field is required.');
+    });
+
+    it("Should fail if status value is invalid", function () {
+        \Laravel\Sanctum\Sanctum::actingAs($this->admin);
+
+        $response = $this->patchJson("/api/admin/users/{$this->user->id}/status", [
+            'status' => 'pending'
+        ]);
+
+        dump($response->json());
+
+        expect($response)->status()->toBe(400);
+        expect($response->json('errors.message.status.0'))->toBe('The selected status is invalid.');
+    });
+
+    it("Should fail if user not found", function () {
+        \Laravel\Sanctum\Sanctum::actingAs($this->admin);
+
+        $response = $this->patchJson("/api/admin/users/9999/status", [
+            'status' => 'inactive'
+        ]);
+
+        dump($response->json());
+
+        expect($response)->status()->toBe(404);
+        expect($response->json('errors.message'))->toBe('User not found');
+    });
+
+    it("Should return 401 if unauthenticated", function () {
+        $response = $this->patchJson("/api/admin/users/{$this->user->id}/status", [
+            'status' => 'inactive'
+        ]);
+
+        dump($response->json());
+
+        expect($response)->status()->toBe(401);
+    });
+
+    it("Should forbid non-admin from updating user status", function () {
+        \Laravel\Sanctum\Sanctum::actingAs($this->user);
+
+        $response = $this->patchJson("/api/admin/users/{$this->admin->id}/status", [
+            'status' => 'inactive'
+        ]);
+
+        dump($response->json());
+
+        expect($response)->status()->toBe(403);
+    });
+
+    it("Should not allow user to deactivate themselves if only admin", function () {
+        \Laravel\Sanctum\Sanctum::actingAs($this->admin);
+
+        $response = $this->patchJson("/api/admin/users/{$this->admin->id}/status", [
+            'status' => 'inactive'
+        ]);
+
+        dump($response->json());
+
+        expect($response)->status()->toBe(400);
+        expect($response->json('errors.message'))->toBe('You cannot deactivate your own account.');
+    });
+
+
+    it("Should not allow admin to deactivate themselves even if other admins exist", function () {
+        $admin2 = \App\Models\User::create([
+            'name' => 'admin2',
+            'email' => 'admin2@example.com',
+            'password' => bcrypt('rahasia12345'),
+            'role_id' => $this->adminRole->id,
+            'status' => 'active'
+        ]);
+
+        \Laravel\Sanctum\Sanctum::actingAs($admin2);
+
+        $response = $this->patchJson("/api/admin/users/{$admin2->id}/status", [
+            'status' => 'inactive'
+        ]);
+        dump($response->json());
+
+        expect($response)->status()->toBe(400);
+        expect($response->json('errors.message'))->toBe('You cannot deactivate your own account.');
+    });
+
+    it("Should allow admin to activate another inactive admin", function () {
+        $admin2 = \App\Models\User::create([
+            'name' => 'admin2',
+            'email' => 'admin2@example.com',
+            'password' => bcrypt('rahasia12345'),
+            'role_id' => $this->adminRole->id,
+            'status' => 'inactive'
+        ]);
+
+        \Laravel\Sanctum\Sanctum::actingAs($this->admin);
+
+        $response = $this->patchJson("/api/admin/users/{$admin2->id}/status", [
+            'status' => 'active'
+        ]);
+
+        dump($response->json());
+
+        expect($response)->status()->toBe(200);
+        expect($response->json('data.message'))->toBe('User status updated successfully.');
+        expect($response->json('data.user.status'))->toBe('active');
+    });
+
+    it("Should allow admin to deactivate another admin if other active admins remain", function () {
+        $admin2 = \App\Models\User::create([
+            'name' => 'admin2',
+            'email' => 'admin2@example.com',
+            'password' => bcrypt('rahasia12345'),
+            'role_id' => $this->adminRole->id,
+            'status' => 'active'
+        ]);
+
+        \Laravel\Sanctum\Sanctum::actingAs($this->admin);
+
+        $response = $this->patchJson("/api/admin/users/{$admin2->id}/status", [
+            'status' => 'inactive'
+        ]);
+
+        dump($response->json());
+
+        expect($response)->status()->toBe(200);
+        expect($response->json('data.user.status'))->toBe('inactive');
+    });
+
+    it("Should not allow admin to deactivate another admin if only one active admin left", function () {
+        $inactiveAdmin = \App\Models\User::create([
+            'name' => 'admin2',
+            'email' => 'admin2@example.com',
+            'password' => bcrypt('rahasia12345'),
+            'role_id' => $this->adminRole->id,
+            'status' => 'inactive'
+        ]);
+
+        \Laravel\Sanctum\Sanctum::actingAs($this->admin);
+
+        $response = $this->patchJson("/api/admin/users/{$this->admin->id}/status", [
+            'status' => 'inactive'
+        ]);
+
+        dump($response->json());
+
+        expect($response)->status()->toBe(400);
+        expect($response->json('errors.message'))->toBe('You cannot deactivate your own account.');
+    });
+
+});
+
 

@@ -30,6 +30,7 @@ export default defineComponent({
             //     }
             } catch (error) {
                 if (error.response?.data?.errors?.message) {
+                    console.log(error.response.data);
                     const errors = error.response.data.errors.message;
                     for (const key in errors) {
                         form.errors[key] = errors[key][0];
@@ -76,13 +77,13 @@ export default defineComponent({
                     <div>
                         <label class="block font-medium mb-3">EMAIL</label>
                         <div class="relative">
-                            <input 
-                                type="email" 
-                                v-model="form.email" 
-                                class="w-full p-3  border rounded-lg focus:ring focus:ring-green-300" 
+                            <input
+                                type="email"
+                                v-model="form.email"
+                                class="w-full p-3  border rounded-lg focus:ring focus:ring-green-300"
                                 :class="{ 'border-red-500': form.errors.email }"
                                 placeholder="LeafPost@gmail.com"
-                                required 
+                                required
                             />
                             <span class="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#2F8451]">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -96,15 +97,15 @@ export default defineComponent({
                     <div>
                         <label class="block font-medium mb-3">PASSWORD</label>
                         <div class="relative">
-                            <input 
+                            <input
                                 :type="showPassword ? 'text' : 'password'"
-                                v-model="form.password" 
-                                class="w-full p-3 pr-10 border rounded-lg focus:ring focus:ring-green-300" 
+                                v-model="form.password"
+                                class="w-full p-3 pr-10 border rounded-lg focus:ring focus:ring-green-300"
                                 :class="{ 'border-red-500': form.errors.password }"
                                 placeholder="LeafPostPassword"
-                                required 
+                                required
                             />
-                            <button 
+                            <button
                                 type="button"
                                 class="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#2F8451]"
                                 @click="togglePassword"
@@ -126,8 +127,8 @@ export default defineComponent({
                         </div>
                         <a href="/forgot-password" class="font-light text-black ml-4">Forgot Your Password ?</a>
                     </div>
-                    <button 
-                        type="submit" 
+                    <button
+                        type="submit"
                         class="w-full bg-[#2F8451] font-semibold text-white p-3 rounded-lg hover:bg-[#1F6D3D] hover:opacity-50 disabled:opacity-50 disabled:cursor-not-allowed"
                         :disabled="loading || form.processing"
                     >
