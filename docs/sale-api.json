@@ -1,0 +1,70 @@
+{
+    "openapi": "3.1.0",
+    "info": {
+        "title": "Sales API Specification",
+        "description": "Sales API Specification",
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "http://localhost:8000"
+        }
+    ],
+    "security": [
+        {
+            "BearerAuth": []
+        }
+    ],
+    "components": {
+        "securitySchemes": {
+            "BearerAuth": {
+                "type": "http",
+                "scheme": "bearer"
+            }
+        }
+    },
+    "paths": {
+        "/api/sales": {
+            "get": {
+                "description": "Get all list sales",
+                "summary": "Get all sales"
+            },
+            "post": {
+                "description": "Create a new sale",
+                "summary": "Create a new sale"
+            }
+        },
+        "/api/sales/{id}": {
+            "get": {
+                "description": "Get detail sale by id",
+                "summary": "Get detail sale by id"
+            },
+            "patch": {
+                "description": "Update detail sale by id",
+                "summary": "Update detail sale by id"
+            },
+            "delete": {
+                "description": "Soft delete sale by id",
+                "summary": "Soft delete sale by id"
+            }
+        },
+        "/api/sales/{id}/restore": {
+            "patch": {
+                "description": "Restore deleted sale",
+                "summary": "Restore deleted sale"
+            }
+        },
+        "/api/sales/{id}/force": {
+            "delete": {
+                "description": "Hard delete sale",
+                "summary": "Hard delete sale"
+            }
+        },
+        "/api/sales/trashed": {
+            "get": {
+                "description": "Get all deleted sale",
+                "summary": "Get all deleted sale"
+            }
+        }
+    }
+}

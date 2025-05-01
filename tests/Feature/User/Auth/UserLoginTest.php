@@ -18,7 +18,6 @@ describe("POST /api/users/login", function(){
           "password" => "rahasia12345"
        ]);
 
-       dump($response->json());
        expect($response)->status()->toBe(200);
    });
 
@@ -34,7 +33,6 @@ describe("POST /api/users/login", function(){
             "password" => "rahasia12345"
         ]);
 
-        dump($response->json());
         expect($response)->status()->toBe(403);
     });
 
@@ -50,7 +48,6 @@ describe("POST /api/users/login", function(){
             "password" => ""
         ]);
 
-        dump($response->json());
         expect($response)->status()->toBe(400);
     });
 
@@ -66,7 +63,6 @@ describe("POST /api/users/login", function(){
             "password" => "invalidCredentials"
         ]);
 
-        dump($response->json());
         expect($response)->status()->toBe(401);
     });
 });

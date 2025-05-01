@@ -28,7 +28,13 @@ export default defineComponent({
                     password: form.password,
                     password_confirmation: form.password_confirmation
                 });
-               window.location.href = '/';
+                await Swal.fire({
+                    icon: 'success',
+                    title: 'Registration Successful',
+                    text: 'Your account has been created successfully!',
+                    confirmButtonColor: '#2F8451'
+                });
+                window.location.href = '/';
             } catch (error) {
                 if (error.response?.data?.errors?.message) {
                     const errors = error.response.data.errors.message;
@@ -77,13 +83,13 @@ export default defineComponent({
                     <div>
                         <label class="block font-medium mb-3">NAME</label>
                         <div class="relative">
-                            <input 
-                                type="text" 
-                                v-model="form.name" 
-                                class="w-full p-3  border rounded-lg focus:ring focus:ring-green-300" 
+                            <input
+                                type="text"
+                                v-model="form.name"
+                                class="w-full p-3  border rounded-lg focus:ring focus:ring-green-300"
                                 :class="{ 'border-red-500': form.errors.name }"
                                 placeholder="LeafPost"
-                                required 
+                                required
                             />
                             <span class="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#2F8451]">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -96,13 +102,13 @@ export default defineComponent({
                     <div>
                         <label class="block font-medium mb-3">EMAIL</label>
                         <div class="relative">
-                            <input 
-                                type="email" 
-                                v-model="form.email" 
-                                class="w-full p-3  border rounded-lg focus:ring focus:ring-green-300" 
+                            <input
+                                type="email"
+                                v-model="form.email"
+                                class="w-full p-3  border rounded-lg focus:ring focus:ring-green-300"
                                 :class="{ 'border-red-500': form.errors.email }"
                                 placeholder="LeafPost@gmail.com"
-                                required 
+                                required
                             />
                             <span class="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#2F8451]">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -116,15 +122,15 @@ export default defineComponent({
                     <div>
                         <label class="block font-medium mb-3">PASSWORD</label>
                         <div class="relative">
-                            <input 
+                            <input
                                 :type="showPassword ? 'text' : 'password'"
-                                v-model="form.password" 
-                                class="w-full p-3 border rounded-lg focus:ring focus:ring-green-300" 
+                                v-model="form.password"
+                                class="w-full p-3 border rounded-lg focus:ring focus:ring-green-300"
                                 :class="{ 'border-red-500': form.errors.password }"
                                 placeholder="Enter your password"
-                                required 
+                                required
                             />
-                            <span 
+                            <span
                                 @click="togglePassword"
                                 class="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#2F8451] cursor-pointer"
                             >
@@ -143,15 +149,15 @@ export default defineComponent({
                     <div>
                         <label class="block font-medium mb-3">CONFIRM PASSWORD</label>
                         <div class="relative">
-                            <input 
+                            <input
                                 :type="showConfirmPassword ? 'text' : 'password'"
-                                v-model="form.password_confirmation" 
-                                class="w-full p-3 border rounded-lg focus:ring focus:ring-green-300" 
+                                v-model="form.password_confirmation"
+                                class="w-full p-3 border rounded-lg focus:ring focus:ring-green-300"
                                 :class="{ 'border-red-500': form.errors.password_confirmation }"
                                 placeholder="Confirm your password"
-                                required 
+                                required
                             />
-                            <span 
+                            <span
                                 @click="toggleConfirmPassword"
                                 class="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#2F8451] cursor-pointer"
                             >
@@ -167,8 +173,8 @@ export default defineComponent({
                         </div>
                         <p v-if="form.errors.password_confirmation" class="text-red-500 font-lighttext-sm mt-1">{{ form.errors.password_confirmation }}</p>
                     </div>
-                    <button 
-                        type="submit" 
+                    <button
+                        type="submit"
                         class="w-full bg-[#2F8451] font-semibold text-white p-3 rounded-lg hover:bg-[#1F6D3D] hover:opacity-50 disabled:opacity-50 disabled:cursor-not-allowed"
                         :disabled="loading || form.processing"
                     >

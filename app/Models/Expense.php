@@ -17,7 +17,7 @@ class Expense extends Model
     public $timestamps = true;
 
     protected $fillable = [
-        "description", "amount", "expense_date", "note"
+        "description", "amount", "expense_date", "note", "category_id", "user_id"
     ];
 
     public function user(): BelongsTo
@@ -25,8 +25,9 @@ class Expense extends Model
         return $this->belongsTo(User::class, "user_id", "id");
     }
 
-    public function expenseCategory(): BelongsTo
+    public function category(): BelongsTo
     {
-        return $this->belongsTo(ExpenseCategory::class, "category_id", "id");
+        return $this->belongsTo(ExpenseCategory::class, 'category_id', 'id');
     }
+
 }

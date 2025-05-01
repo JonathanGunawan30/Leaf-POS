@@ -11,13 +11,24 @@ Route::get('/', function () {
         'phpVersion' => PHP_VERSION,
     ]);
 });
-Route::get('/register', function () {
-    return Inertia::render('register');
-})->middleware('guest')->name('register');
-Route::get('/forgot-password', function () {
-    return Inertia::render('forgot_password');
+
+Route::middleware('guest')->group(function () {
+    Route::get('/register', function () {
+        return Inertia::render('register');
+    })->name('register');
+
+    Route::get('/forgot-password', function () {
+        return Inertia::render('forgot_password');
+    });
+
+    Route::get('/reset-password', function () {
+        return Inertia::render('reset_password');
+    });
 });
+
 Route::get('/dashboard', function () {
     return Inertia::render('dashboard');
 });
+
+
 require __DIR__.'/auth.php';

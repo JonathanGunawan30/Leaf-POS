@@ -7,10 +7,16 @@ use App\Models\User;
 use App\Services\Interfaces\AdminService;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Database\Eloquent\Relations\MorphOne;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
+use ReflectionClass;
 
 class AdminServiceImpl implements AdminService
 {
@@ -56,16 +62,24 @@ class AdminServiceImpl implements AdminService
         if (!$user) {
             return false;
         }
-
         if ($authUser && $authUser->id === $user->id) {
             throw \Illuminate\Validation\ValidationException::withMessages([
                 'message' => 'You cannot delete your own account.'
             ]);
         }
 
+        if($user->expenses()->withTrashed()->exists()){
+            throw new \Exception("Cannot delete user because it still has related expenses.", 400);
+        }
+
+        if($user->purchases()->withTrashed()->exists()){
+            throw new \Exception("Cannot delete user because it still has related purchases.", 400);
+        }
+
         $user->delete();
         return true;
     }
+
 
 
     public function getUsers(array $filters)
@@ -77,11 +91,19 @@ class AdminServiceImpl implements AdminService
         }
 
         if (!empty($filters["search"])) {
-            $query->where("name", "LIKE", "%" . $filters["search"] . "%")
-                ->orWhere("email", "LIKE", "%" . $filters["search"] . "%");
+            $query->where(function ($q) use ($filters) {
+                $q->where("name", "LIKE", "%" . $filters["search"] . "%")
+                    ->orWhere("email", "LIKE", "%" . $filters["search"] . "%");
+            });
         }
 
-        return $query->paginate($filters["per_page"] ?? 10);
+        $perPage = isset($filters["per_page"]) ? (int) $filters["per_page"] : 10;
+
+        if(!empty($filters["role"])){
+            $query->where("name", $filters["role"]);
+        }
+
+        return $query->paginate($perPage);
     }
 
     public function addRole(array $roleName): Role
@@ -177,5 +199,11 @@ class AdminServiceImpl implements AdminService
         $user->status = $status;
         $user->save();
         return $user->refresh();
+    }
+
+    public function trashed()
+    {
+        $perPage = request()->get('per_page', 10);
+        return User::onlyTrashed()->latest("deleted_at")->paginate($perPage);
     }
 }
