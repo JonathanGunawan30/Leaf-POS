@@ -102,6 +102,12 @@ class AdminController extends Controller
                     "message" => $e->errors()['message'] ?? ['Invalid request']
                 ]
             ], 400);
+        } catch (\Exception $e){
+            return response()->json([
+                "errors" => [
+                    "message" => $e->getMessage()
+                ]
+            ], 400);
         }
     }
 
@@ -149,6 +155,22 @@ class AdminController extends Controller
                 ], 404);
             }
 
+            if($user->expenses()->withTrashed()->exists()){
+                return response()->json([
+                    "errors" => [
+                        "message" => "Cannot delete user, there are expenses assigned to this user."
+                    ]
+                ], 400);
+            }
+
+            if($user->purchases()->withTrashed()->exists()){
+                return response()->json([
+                    "errors" => [
+                        "message" => "Cannot delete user, there are purchases assigned to this user."
+                    ]
+                ], 400);
+            }
+
             $user->forceDelete();
 
             return response()->json([
@@ -167,7 +189,7 @@ class AdminController extends Controller
 
     public function getUsers(Request $request): AnonymousResourceCollection
     {
-        $filters = $request->only(["role_id", "search", "per_page"]);
+        $filters = $request->only(["role_id", "search", "per_page", "role"]);
         $users = $this->adminService->getUsers($filters);
 
         return AdminResource::collection($users);
@@ -492,6 +514,23 @@ class AdminController extends Controller
         }
     }
 
+    public function trashed()
+    {
+        try {
+            $trashedUser = $this->adminService->trashed();
+            return AdminResource::collection($trashedUser)
+                ->additional([
+                    'message' => 'Trashed users retrieved successfully',
+                    'statusCode' => 200
+                ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'errors' => [
+                    'message' => 'Something went wrong'
+                ]
+            ], 500);
+        }
+    }
 
 
 

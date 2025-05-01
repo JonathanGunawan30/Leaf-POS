@@ -20,4 +20,5 @@ interface AdminService
     public function getUsersByRoleId(int $roleId, array $filters);
     public function updateUserRole(int $userId, int $newRoleId): array;
     public function updateStatus(int $id, string $status);
+    public function trashed();
 }

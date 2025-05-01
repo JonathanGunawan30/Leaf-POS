@@ -31,14 +31,11 @@ export default defineComponent({
             } catch (error) {
                 if (error.response?.data?.errors?.message) {
                     console.log(error.response.data);
-                    const errors = error.response.data.errors.message;
-                    for (const key in errors) {
-                        form.errors[key] = errors[key][0];
-                    }
+                    const errorsMessage = error.response.data.errors.message;
                     Swal.fire({
                         icon: 'error',
                         title: 'Login Failed',
-                        text: Object.values(errors)[0][0],
+                        text: errorsMessage,
                         confirmButtonColor: '#2F8451'
                     });
                 } else {

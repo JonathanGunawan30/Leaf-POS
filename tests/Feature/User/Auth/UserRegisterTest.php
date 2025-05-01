@@ -9,7 +9,6 @@ describe("POST /api/users", function (){
            "password" => "rahasia12345"
        ]);
 
-       dump($response->json());
        expect($response)->status()->toBe(201);
 
        $this->assertDatabaseHas('users', [
@@ -29,7 +28,6 @@ describe("POST /api/users", function (){
             "password" => ""
         ]);
 
-        dump($response->json());
         expect($response)->status()->toBe(400);
     });
 
@@ -46,7 +44,6 @@ describe("POST /api/users", function (){
             "password" => "rahasia12345"
         ]);
 
-        dump($response->json());
         expect($response)->status()->toBe(400);
     });
 });

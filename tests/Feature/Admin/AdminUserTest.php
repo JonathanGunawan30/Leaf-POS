@@ -1,5 +1,13 @@
 <?php
 
+use App\Models\Category;
+use App\Models\Product;
+use App\Models\Role;
+use App\Models\Supplier;
+use App\Models\Tax;
+use App\Models\Unit;
+use App\Models\User;
+
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
 describe("POST /api/admin/users", function () {
@@ -36,7 +44,6 @@ describe("POST /api/admin/users", function () {
             "role_id" => $this->userRole->id
         ]);
 
-        dump($response->json());
         expect($response)->status()->toBe(201);
     });
 
@@ -58,7 +65,6 @@ describe("POST /api/admin/users", function () {
             "role_id" => $this->userRole->id
         ]);
 
-        dump($response->json());
         expect($response)->status()->toBe(403);
     });
 });
@@ -97,7 +103,6 @@ describe("GET /api/admin/users/{id}", function () {
 
         $response = $this->get("/api/admin/users/" . $this->user->id);
 
-        dump($response->json());
         expect($response)->status()->toBe(200);
     });
 
@@ -114,7 +119,6 @@ describe("GET /api/admin/users/{id}", function () {
 
         $response = $this->get("/api/admin/users/" . $user->id);
 
-        dump($response->json());
         expect($response)->status()->toBe(403);
     });
 
@@ -124,7 +128,6 @@ describe("GET /api/admin/users/{id}", function () {
 
         $response = $this->get("/api/admin/users/398475928347592");
 
-        dump($response->json());
         expect($response)->status()->toBe(404);
     });
 });
@@ -159,7 +162,6 @@ describe("PATCH /api/admin/users/{id}", function () {
             "email" => "emailupdated@example.com"
         ]);
 
-        dump($response->json());
         expect($response)->status()->toBe(200);
     });
 
@@ -170,7 +172,6 @@ describe("PATCH /api/admin/users/{id}", function () {
             "email" => "emailupdated@example.com"
         ]);
 
-        dump($response->json());
         expect($response)->status()->toBe(403);
     });
 
@@ -181,7 +182,6 @@ describe("PATCH /api/admin/users/{id}", function () {
             "email" => "emailupdated@example.com"
         ]);
 
-        dump($response->json());
         expect($response)->status()->toBe(404);
     });
 });
@@ -215,7 +215,6 @@ describe("DELETE /api/admin/users/{id}", function () {
 
         $response = $this->delete("/api/admin/users/" . $this->user->id);
 
-        dump($response->json());
         expect($response)->status()->toBe(200);
     });
 
@@ -224,7 +223,6 @@ describe("DELETE /api/admin/users/{id}", function () {
 
         $response = $this->delete("/api/admin/users/" . $this->user->id);
 
-        dump($response->json());
         expect($response)->status()->toBe(403);
     });
 
@@ -233,7 +231,6 @@ describe("DELETE /api/admin/users/{id}", function () {
 
         $response = $this->delete("/api/admin/users/" . $this->user->id * 2);
 
-        dump($response->json());
         expect($response)->status()->toBe(404);
     });
     it("Should fail to delete self and return 400", function () {
@@ -241,12 +238,94 @@ describe("DELETE /api/admin/users/{id}", function () {
 
         $response = $this->delete("/api/admin/users/" . $this->admin->id);
 
-        dump($response->json());
-
         expect($response)->status()->toBe(400);
         expect($response->json('errors.message.0'))->toBe("You cannot delete your own account.");
     });
 
+    it("Should be fail to delete because there is a relationship and return 400", function () {
+        \Laravel\Sanctum\Sanctum::actingAs($this->admin);
+
+        $this->userA = User::factory()->create([
+            'role_id' => $this->adminRole->id,
+            'status' => 'active'
+        ]);
+
+        $this->unit = Unit::factory()->create();
+        $this->category = Category::factory()->create();
+        $this->supplier = Supplier::factory()->create();
+
+        $this->products = Product::factory()
+            ->count(5)
+            ->for($this->category)
+            ->for($this->unit)
+            ->create();
+
+        $this->originalProducts = $this->products->take(3);
+
+        $this->taxes = Tax::factory()->count(3)->create();
+        $this->originalTaxes = $this->taxes->take(2);
+
+        $this->payload = [
+
+            'invoice_number' => 'INV-001',
+            'purchase_date' => now()->toDateString(),
+            'total_amount' => 500000,
+            'total_discount' => 50000,
+            'shipping_amount' => 20000,
+            'status' => 'confirmed',
+            'payment_status' => 'partially_paid',
+            'due_date' => now()->addDays(10)->toDateString(),
+            'estimated_arrival_date' => now()->addDays(5)->toDateString(),
+            'supplier_id' => $this->supplier->id,
+            'purchase_details' => $this->originalProducts->map(function ($product) {
+                return [
+                    'product_id' => $product->id,
+                    'quantity' => 5,
+                    'unit_price' => 100000,
+                    'sub_total' => 500000,
+                    'note' => 'test note'
+                ];
+            })->toArray(),
+            'purchase_payments' => [
+                [
+                    'payment_date' => now()->toDateString(),
+                    'amount' => 300000,
+                    'due_date' => now()->addDays(10)->toDateString(),
+                    'payment_method' => 'bank_transfer',
+                    'status' => 'paid',
+                    'note' => 'first payment'
+                ]
+            ],
+            'taxes' => $this->originalTaxes->map(function ($tax) {
+                return [
+                    'tax_id' => $tax->id
+                ];
+            })->toArray()
+        ];
+
+        $this->payload['user_id'] = $this->userA->id;
+
+        $response = $this->actingAs($this->userA)->postJson('/api/purchases', $this->payload);
+        $responseData = $response->json();
+        $this->purchaseId = $responseData['data']['id'];
+        $this->originalPurchase = \App\Models\Purchase::find($this->purchaseId);
+        $this->originalDetailIds = $this->originalPurchase->details->pluck('id')->toArray();
+        $this->originalPaymentIds = $this->originalPurchase->payments->pluck('id')->toArray();
+
+
+        $response = $this->actingAs($this->admin)->deleteJson("/api/admin/users/{$this->userA->id}");
+
+        $response->assertStatus(400);
+        $response->assertJson([
+            "errors" => [
+                'message' => 'Cannot delete user because it still has related purchases.',
+            ]
+        ]);
+
+
+        $this->assertDatabaseHas('users', ['id' => $this->admin->id]);
+
+    });
 });
 
 describe("PATCH /api/admin/users/{id}/restore", function () {
@@ -280,7 +359,6 @@ describe("PATCH /api/admin/users/{id}/restore", function () {
 
         $response = $this->patch("/api/admin/users/{$this->user->id}/restore");
 
-        dump($response->json());
 
         $response->assertStatus(200)
             ->assertJson([
@@ -297,7 +375,6 @@ describe("PATCH /api/admin/users/{id}/restore", function () {
 
         $response = $this->patch("/api/admin/users/{$this->user->id}/restore");
 
-        dump($response->json());
 
         $response->assertStatus(403)
             ->assertJson([
@@ -310,7 +387,6 @@ describe("PATCH /api/admin/users/{id}/restore", function () {
 
         $response = $this->patch("/api/admin/users/9999/restore");
 
-        dump($response->json());
 
         $response->assertStatus(404)
             ->assertJson([
@@ -351,7 +427,6 @@ describe("DELETE /api/admin/users/{id}/force", function () {
 
         $response = $this->delete("/api/admin/users/{$this->user->id}/force");
 
-        dump($response->json());
 
         $response->assertStatus(200)
             ->assertJson([
@@ -368,7 +443,6 @@ describe("DELETE /api/admin/users/{id}/force", function () {
 
         $response = $this->delete("/api/admin/users/{$this->user->id}/force");
 
-        dump($response->json());
 
         $response->assertStatus(403)
             ->assertJson([
@@ -381,7 +455,6 @@ describe("DELETE /api/admin/users/{id}/force", function () {
 
         $response = $this->delete("/api/admin/users/9999/force");
 
-        dump($response->json());
 
         $response->assertStatus(404)
             ->assertJson([
@@ -390,7 +463,7 @@ describe("DELETE /api/admin/users/{id}/force", function () {
     });
 });
 
-describe("GET /api/admin/users", function (){
+describe("GET /api/admin/users", function () {
     beforeEach(function () {
         $this->adminRole = \App\Models\Role::query()->create([
             "name" => "Admin"
@@ -415,11 +488,10 @@ describe("GET /api/admin/users", function (){
 
     });
 
-    it("Should be success get user list data", function (){
+    it("Should be success get user list data", function () {
         \Laravel\Sanctum\Sanctum::actingAs($this->admin);
 
         $response = $this->get("/api/admin/users");
-
         dump($response->json());
         expect($response)->status()->toBe(200);
 
@@ -430,7 +502,6 @@ describe("GET /api/admin/users", function (){
 
         $response = $this->get("/api/admin/users?role_id={$this->userRole->id}&per_page=10");
 
-        dump($response->json());
         $response->assertStatus(200);
         expect($response)->status()->toBe(200);
     });
@@ -445,7 +516,7 @@ describe("GET /api/admin/users", function (){
         ]);
 
         $response = $this->get("/api/admin/users?search=Jonathan");
-        dump($response->json());
+
         $response->assertStatus(200);
         expect(collect($response->json("data"))->pluck("id"))->toContain($user->id);
     });

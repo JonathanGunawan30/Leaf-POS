@@ -1,0 +1,2332 @@
+{
+    "openapi": "3.1.0",
+    "info": {
+        "title": "Purchase API Specification",
+        "description": "Purchase API Specification",
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "http://localhost:8000"
+        }
+    ],
+    "security": [
+        {
+            "BearerAuth": []
+        }
+    ],
+    "components": {
+        "securitySchemes": {
+            "BearerAuth": {
+                "type": "http",
+                "scheme": "bearer"
+            }
+        },
+        "schemas": {
+            "PurchaseResponse": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "invoice_number": {
+                        "type": "string"
+                    },
+                    "purchase_date": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "total_amount": {
+                        "type": "number"
+                    },
+                    "total_tax": {
+                        "type": "number"
+                    },
+                    "total_discount": {
+                        "type": "number"
+                    },
+                    "shipping_amount": {
+                        "type": "number"
+                    },
+                    "grand_total": {
+                        "type": "number"
+                    },
+                    "status": {
+                        "type": "string"
+                    },
+                    "payment_status": {
+                        "type": "string"
+                    },
+                    "due_date": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "estimated_arrival_date": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "actual_arrival_date": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "supplier": {
+                        "type": "object",
+                        "properties": {
+                            "id": {
+                                "type": "string"
+                            },
+                            "name": {
+                                "type": "string"
+                            },
+                            "company_name": {
+                                "type": "string"
+                            },
+                            "email": {
+                                "type": "string"
+                            },
+                            "phone": {
+                                "type": "string"
+                            },
+                            "city": {
+                                "type": "string"
+                            },
+                            "postal_code": {
+                                "type": "string"
+                            },
+                            "province": {
+                                "type": "string"
+                            },
+                            "country": {
+                                "type": "string"
+                            },
+                            "address": {
+                                "type": "string"
+                            },
+                            "bank_account": {
+                                "type": "string"
+                            },
+                            "bank_name": {
+                                "type": "string"
+                            },
+                            "npwp_number": {
+                                "type": "string"
+                            },
+                            "siup_number": {
+                                "type": "string"
+                            },
+                            "nib_number": {
+                                "type": "string"
+                            },
+                            "business_type": {
+                                "type": "string"
+                            },
+                            "note": {
+                                "type": "string"
+                            },
+                            "label": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "user": {
+                        "type": "object",
+                        "properties": {
+                            "id": {
+                                "type": "integer"
+                            },
+                            "name": {
+                                "type": "string"
+                            },
+                            "email": {
+                                "type": "string"
+                            },
+                            "role": {
+                                "type": "object",
+                                "properties": {
+                                    "id": {
+                                        "type": "integer"
+                                    },
+                                    "name": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "purchase_details": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "id": {
+                                    "type": "integer"
+                                },
+                                "product_id": {
+                                    "type": "integer"
+                                },
+                                "product_name": {
+                                    "type": "string"
+                                },
+                                "quantity": {
+                                    "type": "integer"
+                                },
+                                "unit_price": {
+                                    "type": "number"
+                                },
+                                "sub_total": {
+                                    "type": "number"
+                                },
+                                "note": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "purchase_payments": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "id": {
+                                    "type": "integer"
+                                },
+                                "payment_date": {
+                                    "type": "string",
+                                    "format": "date"
+                                },
+                                "amount": {
+                                    "type": "number"
+                                },
+                                "amount_due": {
+                                    "type": "number"
+                                },
+                                "payment_method": {
+                                    "type": "string"
+                                },
+                                "status": {
+                                    "type": "string"
+                                },
+                                "note": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "taxes": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "id": {
+                                    "type": "integer"
+                                },
+                                "name": {
+                                    "type": "string"
+                                },
+                                "rate": {
+                                    "type": "number"
+                                },
+                                "amount": {
+                                    "type": "number"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "PaymentResponse": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "payment_date": {
+                        "type": "string",
+                        "format": "date",
+                        "example": "2024-04-21"
+                    },
+                    "amount": {
+                        "type": "number",
+                        "example": 100000
+                    },
+                    "due_date": {
+                        "type": "string",
+                        "format": "date",
+                        "example": "2024-04-30"
+                    },
+                    "payment_method": {
+                        "type": "string",
+                        "example": "Bank Transfer"
+                    },
+                    "status": {
+                        "type": "string",
+                        "example": "paid"
+                    },
+                    "note": {
+                        "type": "string",
+                        "example": "Pelunasan tahap akhir"
+                    },
+                    "purchase_id": {
+                        "type": "integer",
+                        "example": 5
+                    },
+                    "purchase": {
+                        "type": "object",
+                        "properties": {
+                            "id": {
+                                "type": "integer",
+                                "example": 0
+                            },
+                            "invoice_number": {
+                                "type": "string",
+                                "example": "INV-2025-001"
+                            },
+                            "purchase_date": {
+                                "type": "string",
+                                "format": "date",
+                                "example": "2025-04-21"
+                            },
+                            "total_amount": {
+                                "type": "number",
+                                "format": "float",
+                                "example": 0
+                            },
+                            "total_tax": {
+                                "type": "number",
+                                "format": "float",
+                                "example": 0
+                            },
+                            "total_discount": {
+                                "type": "number",
+                                "format": "float",
+                                "example": 0
+                            },
+                            "shipping_amount": {
+                                "type": "number",
+                                "format": "float",
+                                "example": 0
+                            },
+                            "grand_total": {
+                                "type": "number",
+                                "format": "float",
+                                "example": 0
+                            },
+                            "status": {
+                                "type": "string",
+                                "example": "paid"
+                            },
+                            "payment_status": {
+                                "type": "string",
+                                "example": "completed"
+                            },
+                            "due_date": {
+                                "type": "string",
+                                "format": "date",
+                                "example": "2025-04-21"
+                            },
+                            "estimated_arrival_date": {
+                                "type": "string",
+                                "format": "date",
+                                "example": "2025-04-21"
+                            },
+                            "actual_arrival_date": {
+                                "type": "string",
+                                "format": "date",
+                                "example": "2025-04-21"
+                            },
+                            "supplier": {
+                                "type": "object",
+                                "properties": {
+                                    "id": {
+                                        "type": "string",
+                                        "example": "SUP-123"
+                                    },
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Supplier Name"
+                                    },
+                                    "company_name": {
+                                        "type": "string",
+                                        "example": "Supplier Co."
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "example": "supplier@example.com"
+                                    },
+                                    "phone": {
+                                        "type": "string",
+                                        "example": "+123456789"
+                                    },
+                                    "city": {
+                                        "type": "string",
+                                        "example": "City Name"
+                                    },
+                                    "postal_code": {
+                                        "type": "string",
+                                        "example": "12345"
+                                    },
+                                    "province": {
+                                        "type": "string",
+                                        "example": "Province"
+                                    },
+                                    "country": {
+                                        "type": "string",
+                                        "example": "Country"
+                                    },
+                                    "address": {
+                                        "type": "string",
+                                        "example": "123 Supplier St."
+                                    },
+                                    "bank_account": {
+                                        "type": "string",
+                                        "example": "1234567890"
+                                    },
+                                    "bank_name": {
+                                        "type": "string",
+                                        "example": "Bank Example"
+                                    },
+                                    "npwp_number": {
+                                        "type": "string",
+                                        "example": "NPWP123456"
+                                    },
+                                    "siup_number": {
+                                        "type": "string",
+                                        "example": "SIUP123456"
+                                    },
+                                    "nib_number": {
+                                        "type": "string",
+                                        "example": "NIB123456"
+                                    },
+                                    "business_type": {
+                                        "type": "string",
+                                        "example": "Manufacturer"
+                                    },
+                                    "note": {
+                                        "type": "string",
+                                        "example": "Special payment terms"
+                                    },
+                                    "label": {
+                                        "type": "string",
+                                        "example": "Main Supplier"
+                                    }
+                                }
+                            },
+                            "user": {
+                                "type": "object",
+                                "properties": {
+                                    "id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "name": {
+                                        "type": "string",
+                                        "example": "John Doe"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "example": "john.doe@example.com"
+                                    },
+                                    "role": {
+                                        "type": "object",
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer",
+                                                "example": 1
+                                            },
+                                            "name": {
+                                                "type": "string",
+                                                "example": "Admin"
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            "purchase_details": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "id": {
+                                            "type": "integer",
+                                            "example": 1
+                                        },
+                                        "product_id": {
+                                            "type": "integer",
+                                            "example": 101
+                                        },
+                                        "product_name": {
+                                            "type": "string",
+                                            "example": "Product Name"
+                                        },
+                                        "quantity": {
+                                            "type": "integer",
+                                            "example": 10
+                                        },
+                                        "unit_price": {
+                                            "type": "number",
+                                            "format": "float",
+                                            "example": 100
+                                        },
+                                        "sub_total": {
+                                            "type": "number",
+                                            "format": "float",
+                                            "example": 1000
+                                        },
+                                        "note": {
+                                            "type": "string",
+                                            "example": "Discount applied"
+                                        }
+                                    }
+                                }
+                            },
+                            "purchase_payments": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "id": {
+                                            "type": "integer",
+                                            "example": 1
+                                        },
+                                        "payment_date": {
+                                            "type": "string",
+                                            "format": "date",
+                                            "example": "2025-04-21"
+                                        },
+                                        "amount": {
+                                            "type": "number",
+                                            "format": "float",
+                                            "example": 1070
+                                        },
+                                        "amount_due": {
+                                            "type": "number",
+                                            "format": "float",
+                                            "example": 0
+                                        },
+                                        "payment_method": {
+                                            "type": "string",
+                                            "example": "Bank Transfer"
+                                        },
+                                        "status": {
+                                            "type": "string",
+                                            "example": "Completed"
+                                        },
+                                        "note": {
+                                            "type": "string",
+                                            "example": "Paid in full"
+                                        }
+                                    }
+                                }
+                            },
+                            "taxes": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "id": {
+                                            "type": "integer",
+                                            "example": 1
+                                        },
+                                        "name": {
+                                            "type": "string",
+                                            "example": "VAT"
+                                        },
+                                        "rate": {
+                                            "type": "number",
+                                            "format": "float",
+                                            "example": 10
+                                        },
+                                        "amount": {
+                                            "type": "number",
+                                            "format": "float",
+                                            "example": 100
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "paths": {
+        "/api/purchases": {
+            "get": {
+                "summary": "Retrieve all purchase records.",
+                "description": "Get a list of all purchases with their related details and payments.",
+                "tags": [
+                    "Purchases"
+                ],
+                "parameters": [
+                    {
+                        "name": "invoice",
+                        "in": "query",
+                        "description": "Search by invoice number.",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "Filter by purchase status (e.g. pending, completed).",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "payment_status",
+                        "in": "query",
+                        "description": "Filter by payment status (e.g. unpaid, partial, paid).",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "supplier_name",
+                        "in": "query",
+                        "description": "Filter by supplier name.",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "user_name",
+                        "in": "query",
+                        "description": "Filter by user name who created the purchase.",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "product_name",
+                        "in": "query",
+                        "description": "Filter by product name.",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "start_date",
+                        "in": "query",
+                        "description": "Filter purchases from this date (YYYY-MM-DD).",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    },
+                    {
+                        "name": "end_date",
+                        "in": "query",
+                        "description": "Filter purchases up to this date (YYYY-MM-DD).",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Number of items per page.",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 10
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Current page number.",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of purchases retrieved successfully.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer",
+                                                        "example": 1
+                                                    },
+                                                    "invoice_number": {
+                                                        "type": "string",
+                                                        "example": "INV-20240421-001"
+                                                    },
+                                                    "purchase_date": {
+                                                        "type": "string",
+                                                        "format": "date",
+                                                        "example": "2024-04-20"
+                                                    },
+                                                    "total_amount": {
+                                                        "type": "number",
+                                                        "example": 200000
+                                                    },
+                                                    "total_tax": {
+                                                        "type": "number",
+                                                        "example": 20000
+                                                    },
+                                                    "total_discount": {
+                                                        "type": "number",
+                                                        "example": 5000
+                                                    },
+                                                    "shipping_amount": {
+                                                        "type": "number",
+                                                        "example": 15000
+                                                    },
+                                                    "grand_total": {
+                                                        "type": "number",
+                                                        "example": 230000
+                                                    },
+                                                    "status": {
+                                                        "type": "string",
+                                                        "example": "completed"
+                                                    },
+                                                    "payment_status": {
+                                                        "type": "string",
+                                                        "example": "paid"
+                                                    },
+                                                    "due_date": {
+                                                        "type": "string",
+                                                        "format": "date",
+                                                        "example": "2024-04-25"
+                                                    },
+                                                    "estimated_arrival_date": {
+                                                        "type": "string",
+                                                        "format": "date",
+                                                        "example": "2024-04-23"
+                                                    },
+                                                    "actual_arrival_date": {
+                                                        "type": "string",
+                                                        "format": "date",
+                                                        "example": "2024-04-22"
+                                                    },
+                                                    "supplier": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "id": 1,
+                                                            "name": "Sample Supplier",
+                                                            "company_name": "Supplier Corp",
+                                                            "email": "supplier@example.com",
+                                                            "phone": "08123456789",
+                                                            "city": "Jakarta",
+                                                            "postal_code": "12345",
+                                                            "province": "DKI Jakarta",
+                                                            "country": "Indonesia",
+                                                            "address": "Jl. Contoh No. 1",
+                                                            "bank_account": "1234567890",
+                                                            "bank_name": "Bank Contoh",
+                                                            "npwp_number": "09.123.456.7-890.000",
+                                                            "siup_number": "SIUP123456",
+                                                            "nib_number": "NIB987654",
+                                                            "business_type": "Retail",
+                                                            "note": "Test supplier for unit testing",
+                                                            "label": "Sample Supplier - Supplier Corp (supplier@example.com)"
+                                                        }
+                                                    },
+                                                    "user": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "id": {
+                                                                "type": "integer",
+                                                                "example": 5
+                                                            },
+                                                            "name": {
+                                                                "type": "string",
+                                                                "example": "Admin A"
+                                                            },
+                                                            "email": {
+                                                                "type": "email",
+                                                                "example": "admin@example.com"
+                                                            },
+                                                            "role": {
+                                                                "type": "object",
+                                                                "properties": {
+                                                                    "id": {
+                                                                        "type": "integer",
+                                                                        "example": 2
+                                                                    },
+                                                                    "name": {
+                                                                        "type": "string",
+                                                                        "example": "Purchasing"
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    },
+                                                    "purchase_details": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "id": {
+                                                                    "type": "integer",
+                                                                    "example": 10
+                                                                },
+                                                                "product_id": {
+                                                                    "type": "integer",
+                                                                    "example": 3
+                                                                },
+                                                                "product_name": {
+                                                                    "type": "string",
+                                                                    "example": "Mouse Wireless"
+                                                                },
+                                                                "quantity": {
+                                                                    "type": "integer",
+                                                                    "example": 10
+                                                                },
+                                                                "unit_price": {
+                                                                    "type": "number",
+                                                                    "example": 15000
+                                                                },
+                                                                "sub_total": {
+                                                                    "type": "number",
+                                                                    "example": 150000
+                                                                },
+                                                                "note": {
+                                                                    "type": "string",
+                                                                    "example": "Urgent stock"
+                                                                }
+                                                            }
+                                                        }
+                                                    },
+                                                    "purchase_payments": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "id": {
+                                                                    "type": "integer",
+                                                                    "example": 1
+                                                                },
+                                                                "payment_date": {
+                                                                    "type": "string",
+                                                                    "format": "date",
+                                                                    "example": "2024-04-21"
+                                                                },
+                                                                "amount": {
+                                                                    "type": "number",
+                                                                    "example": 100000
+                                                                },
+                                                                "amount_due": {
+                                                                    "type": "number",
+                                                                    "example": 0
+                                                                },
+                                                                "payment_method": {
+                                                                    "type": "string",
+                                                                    "example": "Bank Transfer"
+                                                                },
+                                                                "status": {
+                                                                    "type": "string",
+                                                                    "example": "paid"
+                                                                },
+                                                                "note": {
+                                                                    "type": "string",
+                                                                    "example": "First payment"
+                                                                }
+                                                            }
+                                                        }
+                                                    },
+                                                    "taxes": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "id": {
+                                                                    "type": "integer",
+                                                                    "example": 1
+                                                                },
+                                                                "name": {
+                                                                    "type": "string",
+                                                                    "example": "PPN"
+                                                                },
+                                                                "rate": {
+                                                                    "type": "number",
+                                                                    "example": 10
+                                                                },
+                                                                "amount": {
+                                                                    "type": "number",
+                                                                    "example": 20000
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        "statusCode": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Purchase list retrieved successfully."
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Purchases"
+                ],
+                "summary": "Create a new purchase record.",
+                "description": "Create a new purchase with related details, taxes, and payments.",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "invoice_number": {
+                                        "type": "string"
+                                    },
+                                    "purchase_date": {
+                                        "type": "date"
+                                    },
+                                    "total_amount": {
+                                        "type": "number"
+                                    },
+                                    "total_tax": {
+                                        "type": "number"
+                                    },
+                                    "total_discount": {
+                                        "type": "number"
+                                    },
+                                    "shipping_amount": {
+                                        "type": "number"
+                                    },
+                                    "grand_total": {
+                                        "type": "number"
+                                    },
+                                    "status": {
+                                        "type": "string"
+                                    },
+                                    "payment_status": {
+                                        "type": "string"
+                                    },
+                                    "due_date": {
+                                        "type": "date"
+                                    },
+                                    "estimated_arrival_date": {
+                                        "type": "date"
+                                    },
+                                    "actual_arrival_date": {
+                                        "type": "date"
+                                    },
+                                    "user_id": {
+                                        "type": "number"
+                                    },
+                                    "supplier_id": {
+                                        "type": "number"
+                                    },
+                                    "taxes": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object",
+                                            "properties": {
+                                                "tax_id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "purchase_details": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object",
+                                            "required": [
+                                                "product_id",
+                                                "quantity",
+                                                "unit_price"
+                                            ],
+                                            "properties": {
+                                                "product_id": {
+                                                    "type": "integer",
+                                                    "example": 2
+                                                },
+                                                "quantity": {
+                                                    "type": "integer",
+                                                    "example": 10
+                                                },
+                                                "unit_price": {
+                                                    "type": "number",
+                                                    "example": 15000.00
+                                                },
+                                                "sub_total": {
+                                                    "type": "number",
+                                                    "example": 150000.00
+                                                },
+                                                "note": {
+                                                    "type": "string",
+                                                    "example": "Urgent order"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Purchase created successfully.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer"
+                                                },
+                                                "invoice_number": {
+                                                    "type": "string"
+                                                },
+                                                "purchase_date": {
+                                                    "type": "string",
+                                                    "format": "date"
+                                                },
+                                                "total_amount": {
+                                                    "type": "number"
+                                                },
+                                                "total_tax": {
+                                                    "type": "number"
+                                                },
+                                                "total_discount": {
+                                                    "type": "number"
+                                                },
+                                                "shipping_amount": {
+                                                    "type": "number"
+                                                },
+                                                "grand_total": {
+                                                    "type": "number"
+                                                },
+                                                "status": {
+                                                    "type": "string"
+                                                },
+                                                "payment_status": {
+                                                    "type": "string"
+                                                },
+                                                "due_date": {
+                                                    "type": "string",
+                                                    "format": "date"
+                                                },
+                                                "estimated_arrival_date": {
+                                                    "type": "string",
+                                                    "format": "date"
+                                                },
+                                                "actual_arrival_date": {
+                                                    "type": "string",
+                                                    "format": "date"
+                                                },
+                                                "supplier": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "id": {
+                                                            "type": "string"
+                                                        },
+                                                        "name": {
+                                                            "type": "string"
+                                                        },
+                                                        "company_name": {
+                                                            "type": "string"
+                                                        },
+                                                        "email": {
+                                                            "type": "string"
+                                                        },
+                                                        "phone": {
+                                                            "type": "string"
+                                                        },
+                                                        "city": {
+                                                            "type": "string"
+                                                        },
+                                                        "postal_code": {
+                                                            "type": "string"
+                                                        },
+                                                        "province": {
+                                                            "type": "string"
+                                                        },
+                                                        "country": {
+                                                            "type": "string"
+                                                        },
+                                                        "address": {
+                                                            "type": "string"
+                                                        },
+                                                        "bank_account": {
+                                                            "type": "string"
+                                                        },
+                                                        "bank_name": {
+                                                            "type": "string"
+                                                        },
+                                                        "npwp_number": {
+                                                            "type": "string"
+                                                        },
+                                                        "siup_number": {
+                                                            "type": "string"
+                                                        },
+                                                        "nib_number": {
+                                                            "type": "string"
+                                                        },
+                                                        "business_type": {
+                                                            "type": "string"
+                                                        },
+                                                        "note": {
+                                                            "type": "string"
+                                                        },
+                                                        "label": {
+                                                            "type": "string"
+                                                        }
+                                                    }
+                                                },
+                                                "user": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "id": {
+                                                            "type": "integer"
+                                                        },
+                                                        "name": {
+                                                            "type": "string"
+                                                        },
+                                                        "email": {
+                                                            "type": "string"
+                                                        },
+                                                        "role": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "id": {
+                                                                    "type": "integer"
+                                                                },
+                                                                "name": {
+                                                                    "type": "string"
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                },
+                                                "purchase_details": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "id": {
+                                                                "type": "integer"
+                                                            },
+                                                            "product_id": {
+                                                                "type": "integer"
+                                                            },
+                                                            "product_name": {
+                                                                "type": "string"
+                                                            },
+                                                            "quantity": {
+                                                                "type": "integer"
+                                                            },
+                                                            "unit_price": {
+                                                                "type": "number"
+                                                            },
+                                                            "sub_total": {
+                                                                "type": "number"
+                                                            },
+                                                            "note": {
+                                                                "type": "string"
+                                                            }
+                                                        }
+                                                    }
+                                                },
+                                                "purchase_payments": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "id": {
+                                                                "type": "integer"
+                                                            },
+                                                            "payment_date": {
+                                                                "type": "string",
+                                                                "format": "date"
+                                                            },
+                                                            "amount": {
+                                                                "type": "number"
+                                                            },
+                                                            "amount_due": {
+                                                                "type": "number"
+                                                            },
+                                                            "payment_method": {
+                                                                "type": "string"
+                                                            },
+                                                            "status": {
+                                                                "type": "string"
+                                                            },
+                                                            "note": {
+                                                                "type": "string"
+                                                            }
+                                                        }
+                                                    }
+                                                },
+                                                "taxes": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "id": {
+                                                                "type": "integer"
+                                                            },
+                                                            "name": {
+                                                                "type": "string"
+                                                            },
+                                                            "rate": {
+                                                                "type": "number"
+                                                            },
+                                                            "amount": {
+                                                                "type": "number"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        "statusCode": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Purchase created successfully."
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/purchases/{id}": {
+            "get": {
+                "tags": [
+                    "Purchases"
+                ],
+                "summary": "Get purchase detail",
+                "description": "Retrieve full detail of a specific purchase record by ID, including related supplier, user, taxes, payments, and purchase details.",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "ID of the purchase to retrieve"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Purchase detail retrieved successfully.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer"
+                                                },
+                                                "invoice_number": {
+                                                    "type": "string"
+                                                },
+                                                "purchase_date": {
+                                                    "type": "string",
+                                                    "format": "date"
+                                                },
+                                                "total_amount": {
+                                                    "type": "number"
+                                                },
+                                                "total_tax": {
+                                                    "type": "number"
+                                                },
+                                                "total_discount": {
+                                                    "type": "number"
+                                                },
+                                                "shipping_amount": {
+                                                    "type": "number"
+                                                },
+                                                "grand_total": {
+                                                    "type": "number"
+                                                },
+                                                "status": {
+                                                    "type": "string"
+                                                },
+                                                "payment_status": {
+                                                    "type": "string"
+                                                },
+                                                "due_date": {
+                                                    "type": "string",
+                                                    "format": "date"
+                                                },
+                                                "estimated_arrival_date": {
+                                                    "type": "string",
+                                                    "format": "date"
+                                                },
+                                                "actual_arrival_date": {
+                                                    "type": "string",
+                                                    "format": "date"
+                                                },
+                                                "supplier": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "id": {
+                                                            "type": "string"
+                                                        },
+                                                        "name": {
+                                                            "type": "string"
+                                                        },
+                                                        "company_name": {
+                                                            "type": "string"
+                                                        },
+                                                        "email": {
+                                                            "type": "string"
+                                                        },
+                                                        "phone": {
+                                                            "type": "string"
+                                                        },
+                                                        "city": {
+                                                            "type": "string"
+                                                        },
+                                                        "postal_code": {
+                                                            "type": "string"
+                                                        },
+                                                        "province": {
+                                                            "type": "string"
+                                                        },
+                                                        "country": {
+                                                            "type": "string"
+                                                        },
+                                                        "address": {
+                                                            "type": "string"
+                                                        },
+                                                        "bank_account": {
+                                                            "type": "string"
+                                                        },
+                                                        "bank_name": {
+                                                            "type": "string"
+                                                        },
+                                                        "npwp_number": {
+                                                            "type": "string"
+                                                        },
+                                                        "siup_number": {
+                                                            "type": "string"
+                                                        },
+                                                        "nib_number": {
+                                                            "type": "string"
+                                                        },
+                                                        "business_type": {
+                                                            "type": "string"
+                                                        },
+                                                        "note": {
+                                                            "type": "string"
+                                                        },
+                                                        "label": {
+                                                            "type": "string"
+                                                        }
+                                                    }
+                                                },
+                                                "user": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "id": {
+                                                            "type": "integer"
+                                                        },
+                                                        "name": {
+                                                            "type": "string"
+                                                        },
+                                                        "email": {
+                                                            "type": "string"
+                                                        },
+                                                        "role": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "id": {
+                                                                    "type": "integer"
+                                                                },
+                                                                "name": {
+                                                                    "type": "string"
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                },
+                                                "purchase_details": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "id": {
+                                                                "type": "integer"
+                                                            },
+                                                            "product_id": {
+                                                                "type": "integer"
+                                                            },
+                                                            "product_name": {
+                                                                "type": "string"
+                                                            },
+                                                            "quantity": {
+                                                                "type": "integer"
+                                                            },
+                                                            "unit_price": {
+                                                                "type": "number"
+                                                            },
+                                                            "sub_total": {
+                                                                "type": "number"
+                                                            },
+                                                            "note": {
+                                                                "type": "string"
+                                                            }
+                                                        }
+                                                    }
+                                                },
+                                                "purchase_payments": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "id": {
+                                                                "type": "integer"
+                                                            },
+                                                            "payment_date": {
+                                                                "type": "string",
+                                                                "format": "date"
+                                                            },
+                                                            "amount": {
+                                                                "type": "number"
+                                                            },
+                                                            "amount_due": {
+                                                                "type": "number"
+                                                            },
+                                                            "payment_method": {
+                                                                "type": "string"
+                                                            },
+                                                            "status": {
+                                                                "type": "string"
+                                                            },
+                                                            "note": {
+                                                                "type": "string"
+                                                            }
+                                                        }
+                                                    }
+                                                },
+                                                "taxes": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "id": {
+                                                                "type": "integer"
+                                                            },
+                                                            "name": {
+                                                                "type": "string"
+                                                            },
+                                                            "rate": {
+                                                                "type": "number"
+                                                            },
+                                                            "amount": {
+                                                                "type": "number"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        "statusCode": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Purchase detail retrieved successfully."
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "tags": [
+                    "Purchases"
+                ],
+                "summary": "Update a purchase record",
+                "description": "Update an existing purchase record along with its related details, taxes, and payments.",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "ID of the purchase to update"
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "invoice_number": {
+                                        "type": "string"
+                                    },
+                                    "purchase_date": {
+                                        "type": "string",
+                                        "format": "date"
+                                    },
+                                    "total_amount": {
+                                        "type": "number"
+                                    },
+                                    "total_tax": {
+                                        "type": "number"
+                                    },
+                                    "total_discount": {
+                                        "type": "number"
+                                    },
+                                    "shipping_amount": {
+                                        "type": "number"
+                                    },
+                                    "grand_total": {
+                                        "type": "number"
+                                    },
+                                    "status": {
+                                        "type": "string"
+                                    },
+                                    "payment_status": {
+                                        "type": "string"
+                                    },
+                                    "due_date": {
+                                        "type": "string",
+                                        "format": "date"
+                                    },
+                                    "estimated_arrival_date": {
+                                        "type": "string",
+                                        "format": "date"
+                                    },
+                                    "actual_arrival_date": {
+                                        "type": "string",
+                                        "format": "date"
+                                    },
+                                    "user_id": {
+                                        "type": "number"
+                                    },
+                                    "supplier_id": {
+                                        "type": "number"
+                                    },
+                                    "taxes": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object",
+                                            "properties": {
+                                                "tax_id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "purchase_details": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object",
+                                            "required": [
+                                                "product_id",
+                                                "quantity",
+                                                "unit_price"
+                                            ],
+                                            "properties": {
+                                                "product_id": {
+                                                    "type": "integer"
+                                                },
+                                                "quantity": {
+                                                    "type": "integer"
+                                                },
+                                                "unit_price": {
+                                                    "type": "number"
+                                                },
+                                                "sub_total": {
+                                                    "type": "number"
+                                                },
+                                                "note": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Purchase updated successfully.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/PurchaseResponse"
+                                        },
+                                        "statusCode": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Purchase updated successfully."
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Purchases"
+                ],
+                "summary": "Soft delete purchase by id",
+                "description": "Soft delete purchase by id",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Purchase deleted successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "message": {
+                                                    "type": "string",
+                                                    "example": "Purchase deleted successfully"
+                                                }
+                                            }
+                                        },
+                                        "statusCode": {
+                                            "type": "number",
+                                            "example": 200
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/purchases/{id}/restore": {
+            "patch": {
+                "tags": [
+                    "Purchases"
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "ID of the purchase to Restore"
+                    }
+                ],
+                "description": "Restore deleted purchase",
+                "summary": "Restore deleted purchase",
+                "responses": {
+                    "200": {
+                        "description": "Purchase restored successfully.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/PurchaseResponse"
+                                        },
+                                        "statusCode": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Purchase Restored successfully."
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/purchases/{id}/force": {
+            "delete": {
+                "tags": [
+                    "Purchases"
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "ID of the purchase to Hard delete"
+                    }
+                ],
+                "summary": "Hard delete purchase",
+                "description": "Hard delete purchase",
+                "responses": {
+                    "200": {
+                        "description": "Purchase deleted successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "message": {
+                                                    "type": "string",
+                                                    "example": "Purchase deleted successfully"
+                                                }
+                                            }
+                                        },
+                                        "statusCode": {
+                                            "type": "number",
+                                            "example": 200
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/purchases/trashed": {
+            "get": {
+                "tags": [
+                    "Purchases"
+                ],
+                "summary": "Get all trashed purchase",
+                "description": "Get all trashed purchase",
+                "parameters": [
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Number of items per page.",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 10
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Current page number.",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of purchases retrieved successfully.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/PurchaseResponse"
+                                            }
+                                        },
+                                        "statusCode": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Purchase list retrieved successfully."
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/purchase-payments": {
+            "get": {
+                "tags": [
+                    "Purchase Payments"
+                ],
+                "summary": "Get list of purchase payments",
+                "description": "Retrieve a list of all purchase payments.",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "default": 1
+                        },
+                        "description": "Page number for pagination"
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "default": 10
+                        },
+                        "description": "Number of items per page"
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "example": "paid"
+                        },
+                        "description": "Filter payments by status"
+                    },
+                    {
+                        "name": "payment_method",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "example": "Bank Transfer"
+                        },
+                        "description": "Filter by payment method"
+                    },
+                    {
+                        "name": "date_from",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "format": "date",
+                            "example": "2024-04-01"
+                        },
+                        "description": "Filter payments from this date"
+                    },
+                    {
+                        "name": "date_to",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "format": "date",
+                            "example": "2024-04-30"
+                        },
+                        "description": "Filter payments up to this date"
+                    },
+                    {
+                        "name": "purchase_id",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "example": 5
+                        },
+                        "description": "Filter by specific purchase ID"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Purchase payments retrieved successfully.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/PaymentResponse"
+                                            }
+                                        },
+                                        "meta": {
+                                            "type": "object",
+                                            "properties": {
+                                                "current_page": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "per_page": {
+                                                    "type": "integer",
+                                                    "example": 10
+                                                },
+                                                "total": {
+                                                    "type": "integer",
+                                                    "example": 100
+                                                },
+                                                "last_page": {
+                                                    "type": "integer",
+                                                    "example": 10
+                                                }
+                                            }
+                                        },
+                                        "statusCode": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Purchase payments retrieved successfully."
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Purchase Payments"
+                ],
+                "summary": "Create a new purchase payment",
+                "description": "Create a new payment record for a specific purchase.",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": [
+                                    "purchase_id",
+                                    "payment_date",
+                                    "amount",
+                                    "payment_method",
+                                    "status"
+                                ],
+                                "properties": {
+                                    "purchase_id": {
+                                        "type": "integer",
+                                        "example": 5
+                                    },
+                                    "payment_date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2025-04-21"
+                                    },
+                                    "amount": {
+                                        "type": "number",
+                                        "example": 50000
+                                    },
+                                    "due_date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2025-05-01"
+                                    },
+                                    "payment_method": {
+                                        "type": "string",
+                                        "example": "Bank Transfer"
+                                    },
+                                    "status": {
+                                        "type": "string",
+                                        "example": "partial"
+                                    },
+                                    "note": {
+                                        "type": "string",
+                                        "example": "First installment"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Purchase payment created successfully.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/PaymentResponse"
+                                        },
+                                        "statusCode": {
+                                            "type": "integer",
+                                            "example": 201
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Purchase payment created successfully."
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/purchase-payments/{id}": {
+            "get": {
+                "tags": [
+                    "Purchase Payments"
+                ],
+                "summary": "Get a specific purchase payment by ID",
+                "description": "Retrieve details of a specific purchase payment by its ID.",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 5
+                        },
+                        "description": "The ID of the purchase payment to retrieve"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Purchase payment retrieved successfully.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/PaymentResponse"
+                                        },
+                                        "statusCode": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Purchase payment retrieved successfully."
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "tags": [
+                    "Purchase Payments"
+                ],
+                "summary": "Update purchase payment by id",
+                "description": "Update purchase payment by id",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 5
+                        },
+                        "description": "The ID of the purchase payment to retrieve"
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": [
+                                    "purchase_id",
+                                    "payment_date",
+                                    "amount",
+                                    "payment_method",
+                                    "status"
+                                ],
+                                "properties": {
+                                    "purchase_id": {
+                                        "type": "integer",
+                                        "example": 5
+                                    },
+                                    "payment_date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2025-04-21"
+                                    },
+                                    "amount": {
+                                        "type": "number",
+                                        "example": 50000
+                                    },
+                                    "due_date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2025-05-01"
+                                    },
+                                    "payment_method": {
+                                        "type": "string",
+                                        "example": "Bank Transfer"
+                                    },
+                                    "status": {
+                                        "type": "string",
+                                        "example": "partial"
+                                    },
+                                    "note": {
+                                        "type": "string",
+                                        "example": "First installment"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Purchase payment updated successfully.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/PaymentResponse"
+                                        },
+                                        "statusCode": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Purchase payment updated successfully."
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Purchase Payments"
+                ],
+                "summary": "Soft delete payment by id",
+                "description": "Soft delete payment by id",
+                "responses": {
+                    "200": {
+                        "description": "Payment deleted successfully.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "message": {
+                                                    "type": "string",
+                                                    "example": "Payment deleted successfully"
+                                                }
+                                            }
+                                        },
+                                        "statusCode": {
+                                            "type": "integer",
+                                            "example": 200
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/purchase-payments/{id}/restore": {
+            "patch": {
+                "tags": [
+                    "Purchase Payments"
+                ],
+                "summary": "Restore deleted payment",
+                "description": "Restore deleted payment",
+                "responses": {
+                    "200": {
+                        "description": "Purchase payment restored successfully.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/PaymentResponse"
+                                        },
+                                        "statusCode": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Purchase payment restored successfully."
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/purchase-payments/{id}/force": {
+            "delete": {
+                "tags": [
+                    "Purchase Payments"
+                ],
+                "summary": "Hard delete payment",
+                "description": "Hard delete payment",
+                "responses": {
+                    "200": {
+                        "description": "Payment deleted successfully.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "message": {
+                                                    "type": "string",
+                                                    "example": "Payment deleted successfully"
+                                                }
+                                            }
+                                        },
+                                        "statusCode": {
+                                            "type": "integer",
+                                            "example": 200
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/purchase-payments/trashed": {
+            "get": {
+                "tags": [
+                    "Purchase Payments"
+                ],
+                "parameters": [
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Number of items per page.",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 10
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Current page number.",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 1
+                        }
+                    }
+                ],
+                "summary": "Get all trashed payments",
+                "description": "Get all trashed payments",
+                "responses": {
+                    "200": {
+                        "description": "List of payment retrieved successfully.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/PaymentResponse"
+                                            }
+                                        },
+                                        "statusCode": {
+                                            "type": "integer",
+                                            "example": 200
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Payment list retrieved successfully."
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

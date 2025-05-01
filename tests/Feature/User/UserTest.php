@@ -20,7 +20,6 @@ describe("GET /api/users/current", function () {
             'Accept' => 'application/json'
         ]);
 
-        dump($response->json());
         expect($response)->status()->toBe(200);
     });
 
@@ -32,7 +31,6 @@ describe("GET /api/users/current", function () {
             'Accept' => 'application/json'
         ]);
 
-        dump($response->json());
         $response->assertStatus(401);
     });
 });
@@ -58,7 +56,6 @@ describe("PATCH /api/users/current", function () {
             "Accept" => "application/json"
         ]);
 
-        dump($response->json());
         expect($response)->status()->toBe(200);
     });
 
@@ -73,7 +70,6 @@ describe("PATCH /api/users/current", function () {
             "Accept" => "application/json"
         ]);
 
-        dump($response->json());
         expect($response)->status()->toBe(401);
     });
 
@@ -86,7 +82,6 @@ describe("PATCH /api/users/current", function () {
             "Accept" => "application/json"
         ]);
 
-        dump($response->json());
         expect($response)->status()->toBe(200);
     });
 
@@ -101,7 +96,6 @@ describe("PATCH /api/users/current", function () {
             "Accept" => "application/json"
         ]);
 
-        dump($response->json());
         expect($response)->status()->toBe(200);
     });
 
@@ -116,7 +110,6 @@ describe("PATCH /api/users/current", function () {
             "Accept" => "application/json"
         ]);
 
-        dump($response->json());
         expect($response)->status()->toBe(200);
     });
 
@@ -138,7 +131,7 @@ describe("PATCH /api/users/current", function () {
             "Accept" => "application/json"
         ]);
 
-        dump($response->json());
+
         expect($response)->status()->toBe(400);
     });
 });
@@ -161,7 +154,6 @@ describe("DELETE /api/users/logout", function (){
            "Accept" => "application/json"
        ]);
 
-       dump($response->json());
        expect($response)->status()->toBe(200);
    });
 
@@ -173,7 +165,7 @@ describe("DELETE /api/users/logout", function (){
             "Accept" => "application/json"
         ]);
 
-        dump($response->json());
+
         expect($response)->status()->toBe(401);
     });
 });
@@ -211,7 +203,7 @@ describe("PATCH /api/admin/users/{id}/status", function (){
             'status' => 'active'
         ]);
 
-        dump($response->json());
+
 
         expect($response)->status()->toBe(200);
         expect($response->json('data.message'))->toBe('User status updated successfully.');
@@ -228,7 +220,7 @@ describe("PATCH /api/admin/users/{id}/status", function (){
 
         $response = $this->patchJson("/api/admin/users/{$this->user->id}/status", []);
 
-        dump($response->json());
+
 
         expect($response)->status()->toBe(400);
         expect($response->json('errors.message.status.0'))->toBe('The status field is required.');
@@ -241,7 +233,7 @@ describe("PATCH /api/admin/users/{id}/status", function (){
             'status' => 'pending'
         ]);
 
-        dump($response->json());
+
 
         expect($response)->status()->toBe(400);
         expect($response->json('errors.message.status.0'))->toBe('The selected status is invalid.');
@@ -254,8 +246,6 @@ describe("PATCH /api/admin/users/{id}/status", function (){
             'status' => 'inactive'
         ]);
 
-        dump($response->json());
-
         expect($response)->status()->toBe(404);
         expect($response->json('errors.message'))->toBe('User not found');
     });
@@ -265,7 +255,6 @@ describe("PATCH /api/admin/users/{id}/status", function (){
             'status' => 'inactive'
         ]);
 
-        dump($response->json());
 
         expect($response)->status()->toBe(401);
     });
@@ -277,7 +266,6 @@ describe("PATCH /api/admin/users/{id}/status", function (){
             'status' => 'inactive'
         ]);
 
-        dump($response->json());
 
         expect($response)->status()->toBe(403);
     });
@@ -289,7 +277,6 @@ describe("PATCH /api/admin/users/{id}/status", function (){
             'status' => 'inactive'
         ]);
 
-        dump($response->json());
 
         expect($response)->status()->toBe(400);
         expect($response->json('errors.message'))->toBe('You cannot deactivate your own account.');
@@ -310,7 +297,7 @@ describe("PATCH /api/admin/users/{id}/status", function (){
         $response = $this->patchJson("/api/admin/users/{$admin2->id}/status", [
             'status' => 'inactive'
         ]);
-        dump($response->json());
+
 
         expect($response)->status()->toBe(400);
         expect($response->json('errors.message'))->toBe('You cannot deactivate your own account.');
@@ -331,7 +318,6 @@ describe("PATCH /api/admin/users/{id}/status", function (){
             'status' => 'active'
         ]);
 
-        dump($response->json());
 
         expect($response)->status()->toBe(200);
         expect($response->json('data.message'))->toBe('User status updated successfully.');
@@ -353,7 +339,6 @@ describe("PATCH /api/admin/users/{id}/status", function (){
             'status' => 'inactive'
         ]);
 
-        dump($response->json());
 
         expect($response)->status()->toBe(200);
         expect($response->json('data.user.status'))->toBe('inactive');
@@ -374,7 +359,6 @@ describe("PATCH /api/admin/users/{id}/status", function (){
             'status' => 'inactive'
         ]);
 
-        dump($response->json());
 
         expect($response)->status()->toBe(400);
         expect($response->json('errors.message'))->toBe('You cannot deactivate your own account.');

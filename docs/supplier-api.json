@@ -1,0 +1,730 @@
+{
+    "openapi": "3.1.0",
+    "info": {
+        "title": "Supplier API Specification",
+        "description": "Supplier API Specification",
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "http://localhost:8000"
+        }
+    ],
+    "security": [
+        {
+            "BearerAuth": []
+        }
+    ],
+    "components": {
+        "securitySchemes": {
+            "BearerAuth": {
+                "type": "http",
+                "scheme": "bearer"
+            }
+        }
+    },
+    "paths": {
+        "/api/suppliers": {
+            "get": {
+                "summary": "Get list of suppliers",
+                "tags": [
+                    "Suppliers"
+                ],
+                "description": "Get list of suppliers",
+                "parameters": [
+                    {
+                        "name": "name",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Filter by supplier name"
+                    },
+                    {
+                        "name": "company_name",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Filter by company name"
+                    },
+                    {
+                        "name": "city",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Filter by city"
+                    },
+                    {
+                        "name": "country",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Filter by country"
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "default": 10
+                        },
+                        "description": "Items per page"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer",
+                                                        "example": 1
+                                                    },
+                                                    "name": {
+                                                        "type": "string",
+                                                        "example": "John Supplier"
+                                                    },
+                                                    "company_name": {
+                                                        "type": "string",
+                                                        "example": "PT. Sumber Makmur"
+                                                    },
+                                                    "email": {
+                                                        "type": "string",
+                                                        "format": "email",
+                                                        "example": "supplier@example.com"
+                                                    },
+                                                    "phone": {
+                                                        "type": "string",
+                                                        "example": "+628123456789"
+                                                    },
+                                                    "city": {
+                                                        "type": "string",
+                                                        "example": "Jakarta"
+                                                    },
+                                                    "postal_code": {
+                                                        "type": "string",
+                                                        "example": "12345"
+                                                    },
+                                                    "province": {
+                                                        "type": "string",
+                                                        "example": "DKI Jakarta"
+                                                    },
+                                                    "country": {
+                                                        "type": "string",
+                                                        "example": "Indonesia"
+                                                    },
+                                                    "address": {
+                                                        "type": "string",
+                                                        "example": "Jl. Raya No. 1"
+                                                    },
+                                                    "bank_account": {
+                                                        "type": "string",
+                                                        "example": "1234567890"
+                                                    },
+                                                    "bank_name": {
+                                                        "type": "string",
+                                                        "example": "BCA"
+                                                    },
+                                                    "npwp_number": {
+                                                        "type": "string",
+                                                        "example": "01.234.567.8-999.000"
+                                                    },
+                                                    "siup_number": {
+                                                        "type": "string",
+                                                        "example": "SIUP-001122"
+                                                    },
+                                                    "nib_number": {
+                                                        "type": "string",
+                                                        "example": "NIB-889900"
+                                                    },
+                                                    "business_type": {
+                                                        "type": "string",
+                                                        "example": "Distributor"
+                                                    },
+                                                    "note": {
+                                                        "type": "string",
+                                                        "example": "Supplier utama bahan baku"
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "List supplier berhasil diambil"
+                                        },
+                                        "statusCode": {
+                                            "type": "integer",
+                                            "example": 200
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "summary": "Create a new supplier",
+                "tags": ["Suppliers"],
+                "description": "Create new supplier",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "name": { "type": "string", "example": "John Supplier" },
+                                    "company_name": { "type": "string", "example": "PT. Sumber Makmur" },
+                                    "email": { "type": "string", "format": "email", "example": "supplier@example.com" },
+                                    "phone": { "type": "string", "example": "+628123456789" },
+                                    "city": { "type": "string", "example": "Jakarta" },
+                                    "postal_code": { "type": "string", "example": "12345" },
+                                    "province": { "type": "string", "example": "DKI Jakarta" },
+                                    "country": { "type": "string", "example": "Indonesia" },
+                                    "address": { "type": "string", "example": "Jl. Raya No. 1" },
+                                    "bank_account": { "type": "string", "example": "1234567890" },
+                                    "bank_name": { "type": "string", "example": "BCA" },
+                                    "npwp_number": { "type": "string", "example": "01.234.567.8-999.000" },
+                                    "siup_number": { "type": "string", "example": "SIUP-001122" },
+                                    "nib_number": { "type": "string", "example": "NIB-889900" },
+                                    "business_type": { "type": "string", "example": "Distributor" },
+                                    "note": { "type": "string", "example": "Main supplier for raw materials" }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Supplier successfully created",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "id": { "type": "integer", "example": 1 },
+                                                "name": { "type": "string", "example": "John Supplier" },
+                                                "company_name": { "type": "string", "example": "PT. Sumber Makmur" },
+                                                "email": { "type": "string", "example": "supplier@example.com" },
+                                                "phone": { "type": "string", "example": "+628123456789" },
+                                                "city": { "type": "string", "example": "Jakarta" },
+                                                "postal_code": { "type": "string", "example": "12345" },
+                                                "province": { "type": "string", "example": "DKI Jakarta" },
+                                                "country": { "type": "string", "example": "Indonesia" },
+                                                "address": { "type": "string", "example": "Jl. Raya No. 1" },
+                                                "bank_account": { "type": "string", "example": "1234567890" },
+                                                "bank_name": { "type": "string", "example": "BCA" },
+                                                "npwp_number": { "type": "string", "example": "01.234.567.8-999.000" },
+                                                "siup_number": { "type": "string", "example": "SIUP-001122" },
+                                                "nib_number": { "type": "string", "example": "NIB-889900" },
+                                                "business_type": { "type": "string", "example": "Distributor" },
+                                                "note": { "type": "string", "example": "Main supplier for raw materials" }
+                                            }
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Supplier created successfully"
+                                        },
+                                        "statusCode": {
+                                            "type": "integer",
+                                            "example": 201
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },"400": {
+                        "description": "Validation failed",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "errors": {
+                                            "type": "object",
+                                            "additionalProperties": { "type": "string" },
+                                            "example": {
+                                                "email": "The email field is required."
+                                            }
+                                        },
+                                        "statusCode": {
+                                            "type": "integer",
+                                            "example": 400
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/suppliers/{id}": {
+            "get": {
+                "summary": "Get supplier detail by ID",
+                "tags": ["Suppliers"],
+                "description": "Get supplier detail by supplier id",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        },
+                        "description": "ID of the supplier to retrieve"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Supplier detail successfully retrieved",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "id": { "type": "integer", "example": 1 },
+                                                "name": { "type": "string", "example": "John Supplier" },
+                                                "company_name": { "type": "string", "example": "PT. Sumber Makmur" },
+                                                "email": { "type": "string", "example": "supplier@example.com" },
+                                                "phone": { "type": "string", "example": "+628123456789" },
+                                                "city": { "type": "string", "example": "Jakarta" },
+                                                "postal_code": { "type": "string", "example": "12345" },
+                                                "province": { "type": "string", "example": "DKI Jakarta" },
+                                                "country": { "type": "string", "example": "Indonesia" },
+                                                "address": { "type": "string", "example": "Jl. Raya No. 1" },
+                                                "bank_account": { "type": "string", "example": "1234567890" },
+                                                "bank_name": { "type": "string", "example": "BCA" },
+                                                "npwp_number": { "type": "string", "example": "01.234.567.8-999.000" },
+                                                "siup_number": { "type": "string", "example": "SIUP-001122" },
+                                                "nib_number": { "type": "string", "example": "NIB-889900" },
+                                                "business_type": { "type": "string", "example": "Distributor" },
+                                                "note": { "type": "string", "example": "Main supplier for raw materials" }
+                                            }
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Supplier detail retrieved successfully"
+                                        },
+                                        "statusCode": {
+                                            "type": "integer",
+                                            "example": 200
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Supplier not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "errors": {
+                                            "type": "object",
+                                            "properties": {
+                                                "message": {
+                                                    "type": "string",
+                                                    "example": "Supplier not found"
+                                                }
+                                            }
+                                        },
+                                        "statusCode": {
+                                            "type": "integer",
+                                            "example": 404
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "summary": "Update supplier by ID",
+                "tags": ["Suppliers"],
+                "description": "Update supplier by supplier id",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        },
+                        "description": "ID of the supplier to update"
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "name": { "type": "string", "example": "Updated Supplier Name" },
+                                    "company_name": { "type": "string", "example": "PT. Baru Makmur" },
+                                    "email": { "type": "string", "format": "email", "example": "updated@example.com" },
+                                    "phone": { "type": "string", "example": "+628123456780" },
+                                    "city": { "type": "string", "example": "Bandung" },
+                                    "postal_code": { "type": "string", "example": "54321" },
+                                    "province": { "type": "string", "example": "Jawa Barat" },
+                                    "country": { "type": "string", "example": "Indonesia" },
+                                    "address": { "type": "string", "example": "Jl. Baru No. 2" },
+                                    "bank_account": { "type": "string", "example": "0987654321" },
+                                    "bank_name": { "type": "string", "example": "Mandiri" },
+                                    "npwp_number": { "type": "string", "example": "02.345.678.9-000.123" },
+                                    "siup_number": { "type": "string", "example": "SIUP-998877" },
+                                    "nib_number": { "type": "string", "example": "NIB-123456" },
+                                    "business_type": { "type": "string", "example": "Retailer" },
+                                    "note": { "type": "string", "example": "Updated note about supplier" }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Supplier updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "id": { "type": "integer", "example": 1 },
+                                                "name": { "type": "string", "example": "Updated Supplier Name" },
+                                                "company_name": { "type": "string", "example": "PT. Baru Makmur" },
+                                                "email": { "type": "string", "example": "updated@example.com" },
+                                                "phone": { "type": "string", "example": "+628123456780" },
+                                                "city": { "type": "string", "example": "Bandung" },
+                                                "postal_code": { "type": "string", "example": "54321" },
+                                                "province": { "type": "string", "example": "Jawa Barat" },
+                                                "country": { "type": "string", "example": "Indonesia" },
+                                                "address": { "type": "string", "example": "Jl. Baru No. 2" },
+                                                "bank_account": { "type": "string", "example": "0987654321" },
+                                                "bank_name": { "type": "string", "example": "Mandiri" },
+                                                "npwp_number": { "type": "string", "example": "02.345.678.9-000.123" },
+                                                "siup_number": { "type": "string", "example": "SIUP-998877" },
+                                                "nib_number": { "type": "string", "example": "NIB-123456" },
+                                                "business_type": { "type": "string", "example": "Retailer" },
+                                                "note": { "type": "string", "example": "Updated note about supplier" }
+                                            }
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Supplier updated successfully"
+                                        },
+                                        "statusCode": {
+                                            "type": "integer",
+                                            "example": 200
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Supplier not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "errors": {
+                                            "type": "object",
+                                            "properties": {
+                                                "message": {
+                                                    "type": "string",
+                                                    "example": "Supplier not found"
+                                                }
+                                            }
+                                        },
+                                        "statusCode": {
+                                            "type": "integer",
+                                            "example": 404
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "errors": {
+                                            "type": "object",
+                                            "properties": {
+                                                "message": {
+                                                    "type": "string",
+                                                    "example": "The email field must be a valid email address."
+                                                }
+                                            }
+                                        },
+                                        "statusCode": {
+                                            "type": "integer",
+                                            "example": 400
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "summary": "Soft delete supplier by ID",
+                "tags": ["Suppliers"],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        },
+                        "description": "ID of the supplier to soft delete"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Supplier soft deleted successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "message": {
+                                                    "type": "string",
+                                                    "example": "Supplier deleted successfully"
+                                                }
+                                            }
+                                        },
+                                        "statusCode": {
+                                            "type": "integer",
+                                            "example": 200
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Supplier not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "errors": {
+                                            "type": "object",
+                                            "properties": {
+                                                "message": {
+                                                    "type": "string",
+                                                    "example": "Supplier not found"
+                                                }
+                                            }
+                                        },
+                                        "statusCode": {
+                                            "type": "integer",
+                                            "example": 404
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/suppliers/{id}/restore": {
+            "patch": {
+                "summary": "Restore soft-deleted supplier by ID",
+                "tags": ["Suppliers"],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        },
+                        "description": "ID of the supplier to restore"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Supplier restored successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "id": { "type": "integer", "example": 1 },
+                                                "name": { "type": "string", "example": "John Supplier" },
+                                                "company_name": { "type": "string", "example": "PT. Sumber Makmur" },
+                                                "email": { "type": "string", "example": "supplier@example.com" },
+                                                "phone": { "type": "string", "example": "+628123456789" },
+                                                "city": { "type": "string", "example": "Jakarta" },
+                                                "postal_code": { "type": "string", "example": "12345" },
+                                                "province": { "type": "string", "example": "DKI Jakarta" },
+                                                "country": { "type": "string", "example": "Indonesia" },
+                                                "address": { "type": "string", "example": "Jl. Raya No. 1" },
+                                                "bank_account": { "type": "string", "example": "1234567890" },
+                                                "bank_name": { "type": "string", "example": "BCA" },
+                                                "npwp_number": { "type": "string", "example": "01.234.567.8-999.000" },
+                                                "siup_number": { "type": "string", "example": "SIUP-001122" },
+                                                "nib_number": { "type": "string", "example": "NIB-889900" },
+                                                "business_type": { "type": "string", "example": "Distributor" },
+                                                "note": { "type": "string", "example": "Main supplier for raw materials" }
+                                            }
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Supplier restored successfully"
+                                        },
+                                        "statusCode": {
+                                            "type": "integer",
+                                            "example": 200
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Supplier not found or not deleted",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "errors": {
+                                            "type": "object",
+                                            "properties": {
+                                                "message": {
+                                                    "type": "string",
+                                                    "example": "Supplier not found or is not deleted"
+                                                }
+                                            }
+                                        },
+                                        "statusCode": {
+                                            "type": "integer",
+                                            "example": 404
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/suppliers/{id}/force": {
+            "delete": {
+                "summary": "Permanently delete a supplier by ID",
+                "tags": ["Suppliers"],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        },
+                        "description": "ID of the supplier to permanently delete"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Supplier permanently deleted",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "message": {
+                                                    "type": "string",
+                                                    "example": "Supplier permanently deleted"
+                                                }
+                                            }
+                                        },
+                                        "statusCode": {
+                                            "type": "integer",
+                                            "example": 200
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Supplier not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "errors": {
+                                            "type": "object",
+                                            "properties": {
+                                                "message": {
+                                                    "type": "string",
+                                                    "example": "Supplier not found"
+                                                }
+                                            }
+                                        },
+                                        "statusCode": {
+                                            "type": "integer",
+                                            "example": 404
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

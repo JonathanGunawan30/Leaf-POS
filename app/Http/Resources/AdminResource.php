@@ -19,7 +19,7 @@ class AdminResource extends JsonResource
             "name" => $this->name,
             "email" => $this->email,
             "status" => $this->status,
-            "role" => $this->role->name
+            "role" => $this->role->name ?? null,
         ];
     }
 }

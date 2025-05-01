@@ -37,7 +37,6 @@ describe("POST /api/admin/roles", function (){
              "name" => "Inventory"
          ]);
 
-         dump($response->json());
          expect($response)->status()->toBe(201);
          \Pest\Laravel\assertDatabaseHas("roles", ["name" => "Inventory"]);
    });
@@ -50,7 +49,6 @@ describe("POST /api/admin/roles", function (){
             "name" => "Inventory"
         ]);
 
-        dump($response->json());
         expect($response)->status()->toBe(403);
     });
 
@@ -62,7 +60,6 @@ describe("POST /api/admin/roles", function (){
             "Accept" => "application/json"
         ]);
 
-        dump($response->json());
         expect($response)->status()->toBe(401);
     });
 
@@ -77,7 +74,6 @@ describe("POST /api/admin/roles", function (){
             "name" => "Inventory"
         ]);
 
-        dump($response->json());
         expect($response)->status()->toBe(400);
     });
 
@@ -88,7 +84,6 @@ describe("POST /api/admin/roles", function (){
             "name" => ""
         ]);
 
-        dump($response->json());
         expect($response)->status()->toBe(400);
         expect($response->json())->toHaveKeys(["errors"]);
     });
@@ -131,7 +126,6 @@ describe("GET /api/admin/roles/{id}", function (){
 
        $response = $this->get("/api/admin/roles/" . $this->userRole->id);
 
-       dump($response->json());
        expect($response)->status()->toBe(200);
 
     });
@@ -141,7 +135,6 @@ describe("GET /api/admin/roles/{id}", function (){
 
         $response = $this->get("/api/admin/roles/" . $this->userRole->id * 10);
 
-        dump($response->json());
         expect($response)->status()->toBe(404);
 
     });
@@ -151,7 +144,6 @@ describe("GET /api/admin/roles/{id}", function (){
 
         $response = $this->get("/api/admin/roles/" . $this->userRole->id);
 
-        dump($response->json());
         expect($response)->status()->toBe(403);
 
     });
@@ -194,7 +186,6 @@ describe("PATCH /api/admin/roles/{id}", function (){
            "name" => "UserRoleUPDATED"
        ]);
 
-       dump($response->json());
        expect($response)->status()->toBe(200);
        \Pest\Laravel\assertDatabaseHas("roles", [
            "id" => $this->userRole->id,
@@ -208,7 +199,6 @@ describe("PATCH /api/admin/roles/{id}", function (){
             "name" => ""
         ]);
 
-        dump($response->json());
         expect($response)->status()->toBe(400);
     });
 
@@ -218,7 +208,6 @@ describe("PATCH /api/admin/roles/{id}", function (){
             "name" => "UserRoleUPDATED"
         ]);
 
-        dump($response->json());
         expect($response)->status()->toBe(403);
     });
 
@@ -228,7 +217,6 @@ describe("PATCH /api/admin/roles/{id}", function (){
             "name" => "UserRoleUPDATED"
         ]);
 
-        dump($response->json());
         expect($response)->status()->toBe(404);
     });
 });
@@ -270,7 +258,6 @@ describe("DELETE /api/admin/roles/{id}", function (){
 
        $response = $this->delete('/api/admin/roles/' . $this->userRole->id);
 
-       dump($response->json());
        expect($response)->status()->toBe(200);
 
        $response = $this->delete('/api/admin/roles/' . $this->userRole->id);
@@ -282,7 +269,6 @@ describe("DELETE /api/admin/roles/{id}", function (){
 
         $response = $this->delete('/api/admin/roles/' . $this->userRole->id * 10);
 
-        dump($response->json());
         expect($response)->status()->toBe(404);
     });
 
@@ -291,7 +277,6 @@ describe("DELETE /api/admin/roles/{id}", function (){
 
         $response = $this->delete('/api/admin/roles/' . $this->userRole->id * 10);
 
-        dump($response->json());
         expect($response)->status()->toBe(403);
     });
 
@@ -301,7 +286,6 @@ describe("DELETE /api/admin/roles/{id}", function (){
             "Accept" => "application/json"
         ]);
 
-        dump($response->json());
         expect($response)->status()->toBe(401);
     });
 
@@ -311,7 +295,6 @@ describe("DELETE /api/admin/roles/{id}", function (){
             "Accept" => "application/json"
         ]);
 
-        dump($response->json());
         expect($response)->status()->toBe(400);
     });
 
@@ -320,7 +303,6 @@ describe("DELETE /api/admin/roles/{id}", function (){
 
         $response = $this->delete('/api/admin/roles/' . $this->userRole->id);
 
-        dump($response->json());
         expect($response)->status()->toBe(400);
 
     });
@@ -367,8 +349,6 @@ describe("PATCH /api/admin/roles/{id}/restore", function (){
 
        $response = $this->patch("/api/admin/roles/" . $this->userRole->id. "/restore");
 
-       dump($response->json());
-
        expect($response)->status()->toBe(200);
    });
 
@@ -379,8 +359,6 @@ describe("PATCH /api/admin/roles/{id}/restore", function (){
         $role->delete();
 
         $response = $this->patch("/api/admin/roles/" . $this->userRole->id * 10 . "/restore");
-
-        dump($response->json());
 
         expect($response)->status()->toBe(404);
     });
@@ -393,8 +371,6 @@ describe("PATCH /api/admin/roles/{id}/restore", function (){
 
         $response = $this->patch("/api/admin/roles/" . $this->adminRole->id. "/restore");
 
-        dump($response->json());
-
         expect($response)->status()->toBe(403);
     });
 
@@ -402,8 +378,6 @@ describe("PATCH /api/admin/roles/{id}/restore", function (){
         \Laravel\Sanctum\Sanctum::actingAs($this->admin);
 
         $response = $this->patch("/api/admin/roles/" . $this->userRole->id . "/restore");
-
-        dump($response->json());
 
         expect($response)->status()->toBe(400);
     });
@@ -443,8 +417,6 @@ describe("DELETE /api/admin/roles/{id}/force", function (){
 
        $response = $this->delete("/api/admin/roles/" . $this->userRole->id . "/force");
 
-       dump($response->json());
-
        expect($response)->status()->toBe(200);
    });
 
@@ -462,8 +434,6 @@ describe("DELETE /api/admin/roles/{id}/force", function (){
         $role->delete();
 
         $response = $this->delete("/api/admin/roles/" . $this->userRole->id * 10 . "/force");
-
-        dump($response->json());
 
         expect($response)->status()->toBe(404);
     });
@@ -484,7 +454,6 @@ describe("DELETE /api/admin/roles/{id}/force", function (){
 
         $response = $this->delete("/api/admin/roles/" . $this->adminRole->id . "/force");
 
-        dump($response->json());
 
         expect($response)->status()->toBe(403);
     });
@@ -510,8 +479,6 @@ describe("DELETE /api/admin/roles/{id}/force", function (){
 
         $response = $this->delete("/api/admin/roles/" . $this->adminRole->id . "/force");
 
-        dump($response->json());
-
         expect($response)->status()->toBe(400);
     });
 
@@ -536,7 +503,6 @@ describe("DELETE /api/admin/roles/{id}/force", function (){
 
         $response = $this->delete("/api/admin/roles/" . $this->userRole->id . "/force");
 
-        dump($response->json());
 
         expect($response)->status()->toBe(400);
     });
@@ -579,7 +545,6 @@ describe("GET /api/admin/roles", function () {
 
         $response = $this->getJson("/api/admin/roles");
 
-        dump($response->json());
         expect($response)->status()->toBe(200);
         expect($response->json("data"))->toBeArray();
     });
@@ -587,7 +552,6 @@ describe("GET /api/admin/roles", function () {
     it("Should return unauthorized when not logged in", function () {
         $response = $this->getJson("/api/admin/roles");
 
-        dump($response->json());
         expect($response)->status()->toBe(401);
     });
 
@@ -596,7 +560,6 @@ describe("GET /api/admin/roles", function () {
 
         $response = $this->getJson("/api/admin/roles");
 
-        dump($response->json());
         expect($response)->status()->toBe(403);
     });
 
@@ -605,7 +568,6 @@ describe("GET /api/admin/roles", function () {
 
         $response = $this->getJson("/api/admin/roles?per_page=10");
 
-        dump($response->json());
         expect($response)->status()->toBe(200);
         expect($response->json("meta.per_page"))->toBe(10);
         expect($response->json("data"))->toHaveCount(10);
@@ -616,7 +578,6 @@ describe("GET /api/admin/roles", function () {
 
         $response = $this->getJson("/api/admin/roles?search=Role - 2");
 
-        dump($response->json());
         expect($response)->status()->toBe(200);
 
         $results = $response->json("data");
@@ -709,7 +670,7 @@ describe("GET /api/admin/roles/{id}/users", function (){
         $response = $this->getJson("/api/admin/roles/" . $this->userRole->id . "/users");
 
         $json = $response->json();
-        dump($response->json());
+
         expect($response)->status()->toBe(200);
         expect($json["data"])->toHaveCount(10);
         expect($json["meta"]["current_page"] ?? $json["current_page"])->toBe(1);
@@ -735,7 +696,6 @@ describe("GET /api/admin/roles/{id}/users", function (){
         $invalidRoleId = 9999;
         $response = $this->getJson("/api/admin/roles/{$invalidRoleId}/users");
 
-        dump($response->json());
 
         expect($response)->status()->toBe(404);
         expect($response->json("errors.message"))->toBe("Role not found");
@@ -780,8 +740,6 @@ describe("GET /api/admin/roles/{id}/users", function (){
         $email = "user10@example.com";
         $response = $this->getJson("/api/admin/roles/{$this->userRole->id}/users?search={$email}");
 
-        dump($response->json());
-
         expect($response)->status()->toBe(200);
         expect($response->json("data"))->toHaveCount(1);
         expect($response->json("data.0.email"))->toBe($email);
@@ -792,7 +750,6 @@ describe("GET /api/admin/roles/{id}/users", function (){
 
         $response = $this->getJson("/api/admin/roles/{$this->userRole->id}/users?search=@example.com&per_page=25");
 
-        dump($response->json());
 
         expect($response)->status()->toBe(200);
         expect($response->json("data"))->toHaveCount(25);
@@ -834,7 +791,6 @@ describe("PATCH /api/admin/users/{id}/roles", function () {
             'role_id' => $this->newRole->id
         ]);
 
-        dump($response->json());
 
         expect($response)->status()->toBe(200);
         expect($response->json('data.message'))->toBe('User role updated successfully.');
@@ -853,7 +809,6 @@ describe("PATCH /api/admin/users/{id}/roles", function () {
             'role_id' => $this->newRole->id
         ]);
 
-        dump($response->json());
 
         expect($response)->status()->toBe(404);
         expect($response->json('errors.message'))->toBe('User not found');
@@ -866,8 +821,6 @@ describe("PATCH /api/admin/users/{id}/roles", function () {
             'role_id' => 9999
         ]);
 
-        dump($response->json());
-
         expect($response)->status()->toBe(400);
         expect($response->json('errors.message.role_id.0'))->toBe('The selected role id is invalid.');
     });
@@ -877,7 +830,6 @@ describe("PATCH /api/admin/users/{id}/roles", function () {
             'role_id' => $this->newRole->id
         ]);
 
-        dump($response->json());
 
         expect($response)->status()->toBe(401);
     });
@@ -888,7 +840,6 @@ describe("PATCH /api/admin/users/{id}/roles", function () {
             'role_id' => $this->userRole->id
         ]);
 
-        dump($response->json());
 
         expect($response)->status()->toBe(422);
         expect($response->json('errors.message'))->toBe('At least one user must have the Admin role.');
@@ -898,8 +849,6 @@ describe("PATCH /api/admin/users/{id}/roles", function () {
         \Laravel\Sanctum\Sanctum::actingAs($this->admin);
 
         $response = $this->patchJson("/api/admin/users/{$this->user->id}/roles", []);
-
-        dump($response->json());
 
         expect($response)->status()->toBe(400);
         expect($response->json('errors.message.role_id.0'))->toBe('The role id field is required.');
@@ -912,7 +861,6 @@ describe("PATCH /api/admin/users/{id}/roles", function () {
             'role_id' => $this->userRole->id
         ]);
 
-        dump($response->json());
 
         expect($response)->status()->toBe(200);
         expect($response->json('data.message'))->toBe('User role updated successfully.');
@@ -924,7 +872,6 @@ describe("PATCH /api/admin/users/{id}/roles", function () {
             'role_id' => $this->userRole->id
         ]);
 
-        dump($response->json());
 
         expect($response)->status()->toBe(403);
     });
@@ -938,7 +885,6 @@ describe("PATCH /api/admin/users/{id}/roles", function () {
             'role_id' => $this->newRole->id
         ]);
 
-        dump($response->json());
 
         expect($response)->status()->toBe(400);
         expect($response->json('errors.message.role_id.0'))->toBe('The selected role id is invalid.');
@@ -950,7 +896,6 @@ describe("PATCH /api/admin/users/{id}/roles", function () {
             'role_id' => 'abc'
         ]);
 
-        dump($response->json());
 
         expect($response)->status()->toBe(400);
         expect($response->json('errors.message.role_id.0'))->toBe('The selected role id is invalid.');
@@ -970,7 +915,6 @@ describe("PATCH /api/admin/users/{id}/roles", function () {
             'role_id' => $this->userRole->id
         ]);
 
-        dump($response->json());
 
         expect($response)->status()->toBe(200);
         expect($response->json('data.user.role_id'))->toBe($this->userRole->id);
@@ -982,7 +926,6 @@ describe("PATCH /api/admin/users/{id}/roles", function () {
             'role_id' => -1
         ]);
 
-        dump($response->json());
 
         expect($response)->status()->toBe(400);
     });
@@ -993,7 +936,6 @@ describe("PATCH /api/admin/users/{id}/roles", function () {
             'role_id' => null
         ]);
 
-        dump($response->json());
 
         expect($response)->status()->toBe(400);
     });
@@ -1004,7 +946,6 @@ describe("PATCH /api/admin/users/{id}/roles", function () {
             'role_id' => '  '
         ]);
 
-        dump($response->json());
 
         expect($response)->status()->toBe(400);
     });
