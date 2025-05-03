@@ -6,7 +6,7 @@ use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 
-class ExpenseReportExportRequest extends FormRequest
+class CreateSaleDetailRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -24,13 +24,12 @@ class ExpenseReportExportRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'start_date' => ['nullable', 'date'],
-            'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
-            'category_id' => ['nullable', 'exists:expense_categories,id'],
-            'user_id' => ['nullable', 'exists:users,id'],
-            'format' => ['nullable', 'in:pdf,excel']
+            'product_id' => ['required', 'exists:products,id'],
+            'quantity' => ['required', 'integer', 'min:1'],
+            'note' => ['nullable', 'string', 'max:500'],
         ];
     }
+
 
     protected function failedValidation(Validator $validator)
     {
@@ -40,5 +39,4 @@ class ExpenseReportExportRequest extends FormRequest
             ]
         ], 400));
     }
-
 }

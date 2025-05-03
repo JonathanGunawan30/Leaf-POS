@@ -33,15 +33,8 @@ class ProductResource extends JsonResource
             'category_id' => $this->category_id,
             'unit' => new UnitResource($this->whenLoaded('unit')),
             'category' => new CategoryResource($this->whenLoaded('category')),
+            'taxes' => TaxResource::collection($this->whenLoaded('taxes')),
 
-            'taxes' => $this->taxes->map(function ($tax) {
-                return [
-                    'id' => $tax->id,
-                    'name' => $tax->name,
-                    'rate' => $tax->rate,
-                    'amount' => $tax->pivot->amount,
-                ];
-            }),
         ];
     }
 

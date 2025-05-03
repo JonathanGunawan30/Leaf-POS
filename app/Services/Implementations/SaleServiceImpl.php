@@ -8,6 +8,7 @@ use App\Exceptions\CourierNotFoundException;
 use App\Exceptions\CustomerNotFound;
 use App\Exceptions\DistanceNotFound;
 use App\Exceptions\ProductNotFound;
+use App\Exceptions\SaleDetailNotFoundException;
 use App\Exceptions\ShipmentNotFoundException;
 use App\Exceptions\StockNotEnoughException;
 use App\Models\Courier;
@@ -21,6 +22,7 @@ use App\Services\Interfaces\SaleService;
 use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 
 class SaleServiceImpl implements SaleService
 {
@@ -286,66 +288,58 @@ class SaleServiceImpl implements SaleService
                 $existingDetails = $sale->details()->get();
                 $incomingIds = $incomingDetails->pluck('id')->filter()->all();
 
-                // Hapus detail yang tidak ada lagi di input
-                $existingDetails->each(function ($detail) use ($incomingIds) {
-                    if (!in_array($detail->id, $incomingIds)) {
-                        $detail->forceDelete(); // stok sudah dikembalikan di awal
-                    }
-                });
-
                 foreach ($incomingDetails as $detail) {
-                    $existing = $sale->details()->where('id', $detail['id'] ?? null)->first();
-                    $product = Product::with('taxes')->find($detail['product_id']);
+                    if (empty($detail['id'])) {
+                        throw ValidationException::withMessages([
+                            'sale_details' => ['Each detail must include its ID for update.']
+                        ]);
+                    }
+
+                    $existing = $existingDetails->firstWhere('id', $detail['id']);
+
+                    if (!$existing) {
+                        throw new SaleDetailNotFoundException();
+                    }
+
+                    // Gunakan data lama jika tidak dikirim
+                    $productId = $detail['product_id'] ?? $existing->product_id;
+                    $quantity = $detail['quantity'] ?? $existing->quantity;
+
+                    $product = Product::with('taxes')->find($productId);
                     if (!$product) {
                         throw new ProductNotFound();
                     }
 
-                    if ($product->stock < $detail['quantity']) {
+                    if ($quantity !== $existing->quantity && $product->stock < $quantity) {
                         throw new StockNotEnoughException($product->name);
                     }
 
-                    $subTotal = $detail['quantity'] * $product->selling_price;
+                    $subTotal = $quantity * $product->selling_price;
                     $totalAmount += $subTotal;
 
                     foreach ($product->taxes as $tax) {
                         $totalTax += $subTotal * ($tax->rate / 100);
                     }
 
-                    if ($existing) {
-                        if ($existing->product_id != $detail['product_id']) {
-                            $existing->forceDelete();
-                            $sale->details()->create([
-                                'product_id' => $product->id,
-                                'quantity' => $detail['quantity'],
-                                'unit_price' => $product->selling_price,
-                                'sub_total' => $subTotal,
-                                'note' => $detail['note'] ?? null,
-                            ]);
-                        } else {
-                            $existing->update([
-                                'quantity' => $detail['quantity'],
-                                'unit_price' => $product->selling_price,
-                                'sub_total' => $subTotal,
-                                'note' => $detail['note'] ?? $existing->note,
-                            ]);
-                        }
-                    } else {
-                        $sale->details()->create([
-                            'product_id' => $product->id,
-                            'quantity' => $detail['quantity'],
-                            'unit_price' => $product->selling_price,
-                            'sub_total' => $subTotal,
-                            'note' => $detail['note'] ?? null,
-                        ]);
-                    }
+                    // Update detail
+                    $existing->update([
+                        'product_id' => $productId,
+                        'quantity' => $quantity,
+                        'unit_price' => $product->selling_price,
+                        'sub_total' => $subTotal,
+                        'note' => $detail['note'] ?? $existing->note,
+                    ]);
 
-                    // Kurangi stok baru
-                    $product->decrement('stock', $detail['quantity']);
+                    // Kurangi stok baru (opsional tergantung logika rollback sebelumnya)
+                    $product->decrement('stock', $quantity);
                 }
             } else {
                 $totalAmount = $sale->total_amount;
                 $totalTax = $sale->total_tax;
             }
+
+
+
 
             // 4. Payment Handling
             $totalPayment = 0;
@@ -405,7 +399,9 @@ class SaleServiceImpl implements SaleService
             // 6. Shipment Handling
             if (isset($data['shipments'])) {
                 $incomingShipments = collect($data['shipments']);
-                if(!Shipment::find($incomingShipments->first()['id'])){
+                $first = $incomingShipments->first();
+
+                if (isset($first['id']) && !Shipment::find($first['id'])) {
                     throw new ShipmentNotFoundException();
                 }
 
@@ -422,13 +418,11 @@ class SaleServiceImpl implements SaleService
                                 }
                             }
 
-                            // Tambahkan shipping_cost kalau kamu selalu ingin update itu
                             $updateData['shipping_cost'] = $totalShippingCost;
 
                             $shipment->update($updateData);
                         }
                     } else {
-                        // Handle create baru jika tidak ada id
                         $sale->shipments()->create([
                             'courier_id' => $incoming['courier_id'],
                             'vehicle_type' => $incoming['vehicle_type'],
@@ -442,14 +436,129 @@ class SaleServiceImpl implements SaleService
                         ]);
                     }
                 }
+            } elseif (isset($data['customer_id']) ) {
+
+                foreach ($sale->shipments as $shipment) {
+                    $shipment->update(['shipping_cost' => $totalShippingCost]);
+                }
+
+                $grandTotal = ($totalAmount - $sale->total_discount) + $totalTax + $totalShippingCost;
+
+                $sale->update([
+                    'grand_total' => $grandTotal,
+                    'payment_status' => $this->determinePaymentStatus($totalPayment, $grandTotal),
+                ]);
             }
-
-
-
-
 
             $this->generateNumbers($sale);
             return $sale;
         });
     }
+
+    public function getAll()
+    {
+        $query = Sale::with([
+            'user.role',
+            'details.product.unit',
+            'details.product.taxes',
+            'details.product.category',
+            'payments',
+            'shipments.courier',
+            'customer'
+        ])->latest();
+
+        if ($invoice = request()->get('invoice')) {
+            $query->where(function ($q) use ($invoice) {
+                $q->where('invoice_number', 'like', "%{$invoice}%")
+                    ->orWhere('invoice_downpayment_number', 'like', "%{$invoice}%");
+            });
+        }
+
+        if ($status = request()->get('status')) {
+            $query->where('status', 'like', "%{$status}%");
+        }
+
+        if ($paymentStatus = request()->get('payment_status')) {
+            $query->where('payment_status', 'like', "%{$paymentStatus}%");
+        }
+
+        if ($customerName = request()->get('customer_name')) {
+            $query->whereHas('customer', function ($q) use ($customerName) {
+                $q->where('name', 'like', "%{$customerName}%");
+            });
+        }
+
+        if ($productName = request()->get('product_name')) {
+            $query->whereHas('details.product', function ($q) use ($productName) {
+                $q->where('name', 'like', "%{$productName}%");
+            });
+        }
+
+        if ($dueDate = request()->get('due_date')) {
+            $query->whereDate('due_date', $dueDate);
+        }
+
+        if ($courierName = request()->get('courier_name')) {
+            $query->whereHas('shipments.courier', function ($q) use ($courierName) {
+                $q->where('name', 'like', "%{$courierName}%");
+            });
+        }
+
+        if ($shipmentStatus = request()->get('shipment_status')) {
+            $query->whereHas('shipments', function ($q) use ($shipmentStatus) {
+                $q->where('status', $shipmentStatus);
+            });
+        }
+
+        if ($startDate = request()->get('start_date')) {
+            $query->whereDate('sale_date', '>=', $startDate);
+        }
+
+        if ($endDate = request()->get('end_date')) {
+            $query->whereDate('sale_date', '<=', $endDate);
+        }
+
+        $perPage = request()->get('per_page', 10);
+        return $query->paginate($perPage);
+    }
+
+    public function softdelete($id)
+    {
+        $sale = Sale::findOrFail($id);
+        $sale->delete();
+        return $sale;
+    }
+
+    public function restore($id)
+    {
+        $sale = Sale::withTrashed()->findOrFail($id);
+        $sale->restore();
+        return $sale;
+    }
+
+    public function trashed()
+    {
+        $perPage = request()->get('per_page', 10);
+
+        return Sale::onlyTrashed()
+            ->with([
+                'user.role',
+                'details.product.unit',
+                'details.product.taxes',
+                'details.product.category',
+                'payments',
+                'shipments.courier',
+                'customer'
+            ])
+            ->paginate($perPage);
+    }
+
+    public function harddelete($id)
+    {
+        $sale = Sale::withTrashed()->findOrFail($id);
+        $sale->forceDelete();
+        return $sale;
+    }
+
+
 }
