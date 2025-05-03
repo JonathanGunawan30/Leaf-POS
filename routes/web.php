@@ -29,6 +29,9 @@ Route::middleware('guest')->group(function () {
 Route::get('/dashboard', function () {
     return Inertia::render('dashboard');
 });
+Route::get('/products/all', function () {
+    return Inertia::render('all_product');
+});
 
 
 require __DIR__.'/auth.php';
