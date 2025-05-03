@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -9,7 +10,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Sale extends Model
 {
-    use SoftDeletes;
+    use SoftDeletes, HasFactory;
     protected $table = "sales";
     protected $primaryKey = "id";
     protected $keyType = "int";
@@ -45,4 +46,27 @@ class Sale extends Model
     {
         return $this->belongsTo(User::class, "user_id", "id");
     }
+    protected static function booted()
+    {
+        static::deleting(function ($sale) {
+            $sale->details()->delete();
+            $sale->payments()->delete();
+            $sale->shipments()->delete();
+        });
+
+        static::restored(function ($sale) {
+            $sale->details()->withTrashed()->restore();
+            $sale->payments()->withTrashed()->restore();
+            $sale->shipments()->withTrashed()->restore();
+        });
+
+        static::deleting(function ($sale) {
+            if ($sale->isForceDeleting()) {
+                $sale->details()->forceDelete();
+                $sale->payments()->forceDelete();
+                $sale->shipments()->forceDelete();
+            }
+        });
+    }
+
 }

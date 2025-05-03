@@ -11,6 +11,7 @@ return [
     App\Providers\ProductServiceProvider::class,
     App\Providers\PurchasePaymentServiceProvider::class,
     App\Providers\PurchaseServiceProvider::class,
+    App\Providers\SaleDetailServiceProvider::class,
     App\Providers\SaleServiceProvider::class,
     App\Providers\SupplierServiceProvider::class,
     App\Providers\TaxServiceProvider::class,

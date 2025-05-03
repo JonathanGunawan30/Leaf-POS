@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class SalePayment extends Model
 {
-    use SoftDeletes;
+    use SoftDeletes, HasFactory;
     protected $table = "sale_payments";
     protected $primaryKey = "id";
     protected $keyType = "int";

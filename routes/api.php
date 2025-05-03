@@ -166,8 +166,26 @@ Route::middleware('auth:sanctum')->group(function () {
 
         // SALES MANAGEMENT
         Route::post("/sales", [\App\Http\Controllers\SaleController::class, "store"]);
+        Route::get("/sales/trashed", [\App\Http\Controllers\SaleController::class, "trashed"]);
         Route::get("/sales/{id}", [\App\Http\Controllers\SaleController::class, 'show']);
         Route::patch("/sales/{id}", [\App\Http\Controllers\SaleController::class, 'update']);
+        Route::get("/sales", [\App\Http\Controllers\SaleController::class, 'index']);
+        Route::delete("/sales/{id}", [\App\Http\Controllers\SaleController::class, 'delete']);
+        Route::patch("/sales/{id}/restore", [\App\Http\Controllers\SaleController::class, 'restore']);
+        Route::delete("/sales/{id}/force", [\App\Http\Controllers\SaleController::class, 'force']);
+
+        // SURAT JALAN
+        Route::get("/sales/{id}/delivery-note", [\App\Http\Controllers\SaleController::class, 'deliveryNote']);
+
+        // SALES REPORT
+        Route::get("/sale-reports", [\App\Http\Controllers\SaleController::class, 'export']);
+
+            // SISA PDF EXCEL DAN PAYMENT, SEKALIAN CEK UNTUK SHIPMENT MISALNYA SHIPMENT MAU DIHAPUS GIMANA KALO NANTI RETURN
+
+        // SALES DETAIL MANAGEMENT
+        Route::post('/sales/{id}/details', [\App\Http\Controllers\SaleDetailController::class, 'store']);
+        Route::delete('/sales/{saleId}/details/{saleDetailId}', [\App\Http\Controllers\SaleDetailController::class, 'delete']);
+
     });
 
 });
