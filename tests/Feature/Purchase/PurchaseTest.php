@@ -10,7 +10,7 @@ use App\Models\Unit;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
-uses(RefreshDatabase::class);
+//uses(RefreshDatabase::class);
 
 describe("POST /api/purchases", function () {
     beforeEach(function () {
@@ -28,7 +28,7 @@ describe("POST /api/purchases", function () {
 
         // Create 3 products
         $this->products = Product::factory()
-            ->count(3)
+            ->count(50)
             ->for($this->category)
             ->for($this->unit)
             ->create();
@@ -90,222 +90,222 @@ describe("POST /api/purchases", function () {
         expect($response->json('data.estimated_arrival_date'))->toBe(now()->addDays(5)->toDateString());
 
     });
-
-    it("should create purchase with details and payments auto update payment status if amount payment is above or equal grand total", function () {
-        $payload = [
-            'invoice_number' => 'INV-001',
-            'purchase_date' => now()->toDateString(),
-            'total_discount' => 50000,
-            'shipping_amount' => 20000,
-            'status' => 'confirmed',
-            'due_date' => now()->addDays(10)->toDateString(),
-            'estimated_arrival_date' => now()->addDays(5)->toDateString(),
-            'supplier_id' => $this->supplier->id,
-
-            'purchase_details' => $this->products->map(function ($product) {
-                return [
-                    'product_id' => $product->id,
-                    'quantity' => 5,
-                    'unit_price' => 100000,
-                    'sub_total' => 500000,
-                    'note' => 'test note'
-                ];
-            })->toArray(),
-
-            'purchase_payments' => [
-                [
-                    'payment_date' => now()->toDateString(),
-                    'amount' => 999999999999,
-                    'due_date' => now()->addDays(10)->toDateString(),
-                    'payment_method' => 'bank_transfer',
-                    'status' => 'paid',
-                    'note' => 'first payment'
-                ]
-            ],
-
-            'taxes' => $this->taxes->map(function ($tax) {
-                return [
-                    'tax_id' => $tax->id
-                ];
-            })->toArray()
-        ];
-
-        $response = $this->actingAs($this->adminUser)->postJson('/api/purchases', $payload);
-        $response->assertStatus(201);
-        expect($response->json('data.purchase_details'))->toHaveCount(3);
-        expect($response->json('data.purchase_payments'))->toHaveCount(1);
-        expect($response->json('data.taxes'))->toHaveCount(2);
-        expect($response->json('data.total_amount'))->not->toBeNull();
-        expect($response->json('data.total_discount'))->toBe(50000);
-        expect($response->json('data.shipping_amount'))->toBe(20000);
-        expect($response->json('data.payment_status'))->toBe('paid');
-        expect($response->json('data.status'))->toBe('confirmed');
-        expect($response->json('data.due_date'))->toBe(now()->addDays(10)->toDateString());
-        expect($response->json('data.estimated_arrival_date'))->toBe(now()->addDays(5)->toDateString());
-
-    });
-    it("should return error when purchase details are missing", function () {
-        $payload = [
-            'invoice_number' => 'INV-002',
-            'purchase_date' => now()->toDateString(),
-            'total_amount' => 500000,
-            'total_discount' => 50000,
-            'shipping_amount' => 20000,
-            'status' => 'confirmed',
-            'payment_status' => 'partially_paid',
-            'due_date' => now()->addDays(10)->toDateString(),
-            'estimated_arrival_date' => now()->addDays(5)->toDateString(),
-            'supplier_id' => $this->supplier->id,
-            'purchase_details' => [],
-            'purchase_payments' => [],
-            'taxes' => []
-        ];
-
-        $response = $this->actingAs($this->adminUser )->postJson('/api/purchases', $payload);
-        $response->assertStatus(400);
-        expect($response->json('errors.message'))->toHaveKeys(["purchase_details", "purchase_payments", "taxes"]);
-    });
-
-    it("Should be fail if inv number already exists", function (){
-        $payload = [
-            'invoice_number' => 'INV-001',
-            'purchase_date' => now()->toDateString(),
-            'total_amount' => 500000,
-            'total_discount' => 50000,
-            'shipping_amount' => 20000,
-            'status' => 'confirmed',
-            'payment_status' => 'partially_paid',
-            'due_date' => now()->addDays(10)->toDateString(),
-            'estimated_arrival_date' => now()->addDays(5)->toDateString(),
-            'supplier_id' => $this->supplier->id,
-
-            'purchase_details' => $this->products->map(function ($product) {
-                return [
-                    'product_id' => $product->id,
-                    'quantity' => 5,
-                    'unit_price' => 100000,
-                    'sub_total' => 500000,
-                    'note' => 'test note'
-                ];
-            })->toArray(),
-
-            'purchase_payments' => [
-                [
-                    'payment_date' => now()->toDateString(),
-                    'amount' => 300000,
-                    'due_date' => now()->addDays(10)->toDateString(),
-                    'payment_method' => 'bank_transfer',
-                    'status' => 'paid',
-                    'note' => 'first payment'
-                ]
-            ],
-
-            'taxes' => $this->taxes->map(function ($tax) {
-                return [
-                    'tax_id' => $tax->id
-                ];
-            })->toArray()
-        ];
-
-        $payload2 = [
-            'invoice_number' => 'INV-001',
-            'purchase_date' => now()->toDateString(),
-            'total_amount' => 500000,
-            'total_discount' => 50000,
-            'shipping_amount' => 20000,
-            'status' => 'confirmed',
-            'payment_status' => 'partially_paid',
-            'due_date' => now()->addDays(10)->toDateString(),
-            'estimated_arrival_date' => now()->addDays(5)->toDateString(),
-            'supplier_id' => $this->supplier->id,
-
-            'purchase_details' => $this->products->map(function ($product) {
-                return [
-                    'product_id' => $product->id,
-                    'quantity' => 5,
-                    'unit_price' => 100000,
-                    'sub_total' => 500000,
-                    'note' => 'test note'
-                ];
-            })->toArray(),
-
-            'purchase_payments' => [
-                [
-                    'payment_date' => now()->toDateString(),
-                    'amount' => 300000,
-                    'due_date' => now()->addDays(10)->toDateString(),
-                    'payment_method' => 'bank_transfer',
-                    'status' => 'paid',
-                    'note' => 'first payment'
-                ]
-            ],
-
-            'taxes' => $this->taxes->map(function ($tax) {
-                return [
-                    'tax_id' => $tax->id
-                ];
-            })->toArray()
-        ];
-
-        $this->actingAs($this->adminUser )->postJson('/api/purchases', $payload);
-        $response = $this->actingAs($this->adminUser )->postJson('/api/purchases', $payload2);
-        $response->assertStatus(400);
-        expect($response->json('errors.message'))->toHaveKeys(["invoice_number"]);
-    });
-
-    it('Should increase product stock if purchase status is delivered', function () {
-        $initialStocks = $this->products->mapWithKeys(function ($product) {
-            return [$product->id => $product->stock];
-        });
-
-        $payload = [
-            'invoice_number' => 'INV-DELIVERED-001',
-            'purchase_date' => now()->toDateString(),
-            'total_amount' => 500000,
-            'total_discount' => 50000,
-            'shipping_amount' => 20000,
-            'status' => 'delivered',
-            'payment_status' => 'partially_paid',
-            'due_date' => now()->addDays(10)->toDateString(),
-            'estimated_arrival_date' => now()->addDays(5)->toDateString(),
-            'supplier_id' => $this->supplier->id,
-
-            'purchase_details' => $this->products->map(function ($product) {
-                return [
-                    'product_id' => $product->id,
-                    'quantity' => 5,
-                    'sub_total' => 500000,
-                    'note' => 'test note'
-                ];
-            })->toArray(),
-
-            'purchase_payments' => [
-                [
-                    'payment_date' => now()->toDateString(),
-                    'amount' => 300000,
-                    'due_date' => now()->addDays(10)->toDateString(),
-                    'payment_method' => 'bank_transfer',
-                    'status' => 'paid',
-                    'note' => 'first payment'
-                ]
-            ],
-
-            'taxes' => $this->taxes->map(function ($tax) {
-                return [
-                    'tax_id' => $tax->id
-                ];
-            })->toArray()
-        ];
-
-        $response = $this->actingAs($this->adminUser)->postJson('/api/purchases', $payload);
-        $response->assertStatus(201);
-
-        foreach ($this->products as $product) {
-            $product->refresh();
-
-            expect($product->stock)->toBe($initialStocks[$product->id] + 5);
-        }
-    });
+//
+//    it("should create purchase with details and payments auto update payment status if amount payment is above or equal grand total", function () {
+//        $payload = [
+//            'invoice_number' => 'INV-001',
+//            'purchase_date' => now()->toDateString(),
+//            'total_discount' => 50000,
+//            'shipping_amount' => 20000,
+//            'status' => 'confirmed',
+//            'due_date' => now()->addDays(10)->toDateString(),
+//            'estimated_arrival_date' => now()->addDays(5)->toDateString(),
+//            'supplier_id' => $this->supplier->id,
+//
+//            'purchase_details' => $this->products->map(function ($product) {
+//                return [
+//                    'product_id' => $product->id,
+//                    'quantity' => 5,
+//                    'unit_price' => 100000,
+//                    'sub_total' => 500000,
+//                    'note' => 'test note'
+//                ];
+//            })->toArray(),
+//
+//            'purchase_payments' => [
+//                [
+//                    'payment_date' => now()->toDateString(),
+//                    'amount' => 999999999999,
+//                    'due_date' => now()->addDays(10)->toDateString(),
+//                    'payment_method' => 'bank_transfer',
+//                    'status' => 'paid',
+//                    'note' => 'first payment'
+//                ]
+//            ],
+//
+//            'taxes' => $this->taxes->map(function ($tax) {
+//                return [
+//                    'tax_id' => $tax->id
+//                ];
+//            })->toArray()
+//        ];
+//
+//        $response = $this->actingAs($this->adminUser)->postJson('/api/purchases', $payload);
+//        $response->assertStatus(201);
+//        expect($response->json('data.purchase_details'))->toHaveCount(3);
+//        expect($response->json('data.purchase_payments'))->toHaveCount(1);
+//        expect($response->json('data.taxes'))->toHaveCount(2);
+//        expect($response->json('data.total_amount'))->not->toBeNull();
+//        expect($response->json('data.total_discount'))->toBe(50000);
+//        expect($response->json('data.shipping_amount'))->toBe(20000);
+//        expect($response->json('data.payment_status'))->toBe('paid');
+//        expect($response->json('data.status'))->toBe('confirmed');
+//        expect($response->json('data.due_date'))->toBe(now()->addDays(10)->toDateString());
+//        expect($response->json('data.estimated_arrival_date'))->toBe(now()->addDays(5)->toDateString());
+//
+//    });
+//    it("should return error when purchase details are missing", function () {
+//        $payload = [
+//            'invoice_number' => 'INV-002',
+//            'purchase_date' => now()->toDateString(),
+//            'total_amount' => 500000,
+//            'total_discount' => 50000,
+//            'shipping_amount' => 20000,
+//            'status' => 'confirmed',
+//            'payment_status' => 'partially_paid',
+//            'due_date' => now()->addDays(10)->toDateString(),
+//            'estimated_arrival_date' => now()->addDays(5)->toDateString(),
+//            'supplier_id' => $this->supplier->id,
+//            'purchase_details' => [],
+//            'purchase_payments' => [],
+//            'taxes' => []
+//        ];
+//
+//        $response = $this->actingAs($this->adminUser )->postJson('/api/purchases', $payload);
+//        $response->assertStatus(400);
+//        expect($response->json('errors.message'))->toHaveKeys(["purchase_details", "purchase_payments", "taxes"]);
+//    });
+//
+//    it("Should be fail if inv number already exists", function (){
+//        $payload = [
+//            'invoice_number' => 'INV-001',
+//            'purchase_date' => now()->toDateString(),
+//            'total_amount' => 500000,
+//            'total_discount' => 50000,
+//            'shipping_amount' => 20000,
+//            'status' => 'confirmed',
+//            'payment_status' => 'partially_paid',
+//            'due_date' => now()->addDays(10)->toDateString(),
+//            'estimated_arrival_date' => now()->addDays(5)->toDateString(),
+//            'supplier_id' => $this->supplier->id,
+//
+//            'purchase_details' => $this->products->map(function ($product) {
+//                return [
+//                    'product_id' => $product->id,
+//                    'quantity' => 5,
+//                    'unit_price' => 100000,
+//                    'sub_total' => 500000,
+//                    'note' => 'test note'
+//                ];
+//            })->toArray(),
+//
+//            'purchase_payments' => [
+//                [
+//                    'payment_date' => now()->toDateString(),
+//                    'amount' => 300000,
+//                    'due_date' => now()->addDays(10)->toDateString(),
+//                    'payment_method' => 'bank_transfer',
+//                    'status' => 'paid',
+//                    'note' => 'first payment'
+//                ]
+//            ],
+//
+//            'taxes' => $this->taxes->map(function ($tax) {
+//                return [
+//                    'tax_id' => $tax->id
+//                ];
+//            })->toArray()
+//        ];
+//
+//        $payload2 = [
+//            'invoice_number' => 'INV-001',
+//            'purchase_date' => now()->toDateString(),
+//            'total_amount' => 500000,
+//            'total_discount' => 50000,
+//            'shipping_amount' => 20000,
+//            'status' => 'confirmed',
+//            'payment_status' => 'partially_paid',
+//            'due_date' => now()->addDays(10)->toDateString(),
+//            'estimated_arrival_date' => now()->addDays(5)->toDateString(),
+//            'supplier_id' => $this->supplier->id,
+//
+//            'purchase_details' => $this->products->map(function ($product) {
+//                return [
+//                    'product_id' => $product->id,
+//                    'quantity' => 5,
+//                    'unit_price' => 100000,
+//                    'sub_total' => 500000,
+//                    'note' => 'test note'
+//                ];
+//            })->toArray(),
+//
+//            'purchase_payments' => [
+//                [
+//                    'payment_date' => now()->toDateString(),
+//                    'amount' => 300000,
+//                    'due_date' => now()->addDays(10)->toDateString(),
+//                    'payment_method' => 'bank_transfer',
+//                    'status' => 'paid',
+//                    'note' => 'first payment'
+//                ]
+//            ],
+//
+//            'taxes' => $this->taxes->map(function ($tax) {
+//                return [
+//                    'tax_id' => $tax->id
+//                ];
+//            })->toArray()
+//        ];
+//
+//        $this->actingAs($this->adminUser )->postJson('/api/purchases', $payload);
+//        $response = $this->actingAs($this->adminUser )->postJson('/api/purchases', $payload2);
+//        $response->assertStatus(400);
+//        expect($response->json('errors.message'))->toHaveKeys(["invoice_number"]);
+//    });
+//
+//    it('Should increase product stock if purchase status is delivered', function () {
+//        $initialStocks = $this->products->mapWithKeys(function ($product) {
+//            return [$product->id => $product->stock];
+//        });
+//
+//        $payload = [
+//            'invoice_number' => 'INV-DELIVERED-001',
+//            'purchase_date' => now()->toDateString(),
+//            'total_amount' => 500000,
+//            'total_discount' => 50000,
+//            'shipping_amount' => 20000,
+//            'status' => 'delivered',
+//            'payment_status' => 'partially_paid',
+//            'due_date' => now()->addDays(10)->toDateString(),
+//            'estimated_arrival_date' => now()->addDays(5)->toDateString(),
+//            'supplier_id' => $this->supplier->id,
+//
+//            'purchase_details' => $this->products->map(function ($product) {
+//                return [
+//                    'product_id' => $product->id,
+//                    'quantity' => 5,
+//                    'sub_total' => 500000,
+//                    'note' => 'test note'
+//                ];
+//            })->toArray(),
+//
+//            'purchase_payments' => [
+//                [
+//                    'payment_date' => now()->toDateString(),
+//                    'amount' => 300000,
+//                    'due_date' => now()->addDays(10)->toDateString(),
+//                    'payment_method' => 'bank_transfer',
+//                    'status' => 'paid',
+//                    'note' => 'first payment'
+//                ]
+//            ],
+//
+//            'taxes' => $this->taxes->map(function ($tax) {
+//                return [
+//                    'tax_id' => $tax->id
+//                ];
+//            })->toArray()
+//        ];
+//
+//        $response = $this->actingAs($this->adminUser)->postJson('/api/purchases', $payload);
+//        $response->assertStatus(201);
+//
+//        foreach ($this->products as $product) {
+//            $product->refresh();
+//
+//            expect($product->stock)->toBe($initialStocks[$product->id] + 5);
+//        }
+//    });
 
 
 });

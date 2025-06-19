@@ -26,7 +26,7 @@ class UpdateSaleRequest extends FormRequest
         return [
             "sale_date" => ["sometimes", "date"],
             "total_discount" => ["sometimes", "numeric"],
-            "status" => ["sometimes", "in:pending,confirmed,shipped,delivered,cancelled"],
+            "status" => ["sometimes", "in:pending,confirmed,shipped,delivered,cancelled,indent"],
             "due_date" => ["sometimes", "nullable", "date"],
             "note" => ["nullable", "string", "max:500"],
             "customer_id" => ["sometimes", "integer"],

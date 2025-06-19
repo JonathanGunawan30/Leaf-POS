@@ -9,6 +9,7 @@ use App\Http\Resources\CreateExpenseCategoryResource;
 use App\Http\Resources\GetExpenseCategoryResource;
 use App\Models\ExpenseCategory;
 use App\Services\Interfaces\ExpenseCategoryService;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -42,6 +43,30 @@ class ExpenseCategoryController extends Controller
         }
     }
 
+    public function getExpenseCategoryById($id)
+    {
+        try {
+            $response = ExpenseCategory::findOrFail($id);
+            return (new CreateExpenseCategoryResource($response))->additional([
+                "message" => "Expense category retrieved successfully",
+                "statusCode" => 200
+            ]);
+        }  catch (ModelNotFoundException $e) {
+            return response()->json([
+                "errors" => [
+                    "message" => "Expense category not found"
+                ]
+            ], 404);
+        }
+        catch (\Throwable $e) {
+            return response()->json([
+                "errors" => [
+                    "message" => "Something went wrong"
+                ]
+            ], 500);
+        }
+    }
+
     public function updateExpenseCategory(UpdateExpenseCategoryRequest $request, int $id): JsonResponse|CreateExpenseCategoryResource
     {
         try {
@@ -72,6 +97,7 @@ class ExpenseCategoryController extends Controller
     {
         try {
             $perPage = $request->query('per_page', 10);
+            $search = $request->query('search');
 
             if ($perPage < 1 || $perPage > 100) {
                 return response()->json([
@@ -81,7 +107,10 @@ class ExpenseCategoryController extends Controller
                 ], 422);
             }
 
-            $categories = ExpenseCategory::paginate($perPage);
+            $categories = ExpenseCategory::when($search, function ($query) use ($search) {
+                $query->where('name', 'like', '%' . $search . '%');
+            })
+                ->paginate($perPage);
 
             return GetExpenseCategoryResource::collection($categories)->additional([
                 "message" => "Expense category retrieved successfully",
@@ -92,8 +121,9 @@ class ExpenseCategoryController extends Controller
             return response()->json([
                 "errors" => [
                     "message" => $e->getMessage()
-                ]
-            ]);
+                ],
+                "statusCode" => 500
+            ], 500);
         }
     }
 

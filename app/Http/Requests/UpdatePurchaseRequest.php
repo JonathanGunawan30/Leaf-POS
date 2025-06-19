@@ -5,6 +5,7 @@ namespace App\Http\Requests;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Support\Facades\Log;
 
 class UpdatePurchaseRequest extends FormRequest
 {
@@ -23,7 +24,8 @@ class UpdatePurchaseRequest extends FormRequest
      */
     public function rules(): array
     {
-        $purchase = $this->route('purchases');
+
+        $purchase = $this->route('id');
 
         return [
             "invoice_number" => ["sometimes", "required", "string", "max:100", "unique:purchases,invoice_number," . $purchase],

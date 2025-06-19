@@ -10,7 +10,7 @@ class SupplierServiceImpl implements SupplierService
 {
     public function getSupplierById($id): Supplier
     {
-        $supplier = Supplier::find($id);
+        $supplier = Supplier::withTrashed()->find($id);
         if(!$supplier){
             throw new ModelNotFoundException();
         }
@@ -26,22 +26,22 @@ class SupplierServiceImpl implements SupplierService
 
     public function getAll(array $filters = [], $perPage = 10)
     {
+
+        $perPage = request()->get("per_page", 10);
+
         $query = Supplier::query();
 
-        if (!empty($filters['name'])) {
-            $query->where('name', 'like', '%' . $filters['name'] . '%');
-        }
+        $search = request()->get('search');
 
-        if (!empty($filters['company_name'])) {
-            $query->where('company_name', 'like', '%' . $filters['company_name'] . '%');
-        }
-
-        if (!empty($filters['city'])) {
-            $query->where('city', 'like', '%' . $filters['city'] . '%');
-        }
-
-        if (!empty($filters['country'])) {
-            $query->where('country', 'like', '%' . $filters['country'] . '%');
+        if (!empty($search)) {
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', '%' . $search . '%')
+                    ->orWhere('company_name', 'like', '%' . $search . '%')
+                    ->orWhere('email', 'like', '%' . $search . '%')
+                    ->orWhere('phone', 'like', '%' . $search . '%')
+                    ->orWhere('city', 'like', '%' . $search . '%')
+                    ->orWhere('country', 'like', '%' . $search . '%');
+            });
         }
 
         return $query->paginate($perPage);
@@ -99,7 +99,20 @@ class SupplierServiceImpl implements SupplierService
     public function trashed()
     {
         $perPage = request()->get('per_page', 10);
-        return Supplier::onlyTrashed()->latest("deleted_at")->paginate($perPage);
+        $query = Supplier::onlyTrashed();
+        $search = request()->get('search');
+
+        if (!empty($search)) {
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', '%' . $search . '%')
+                    ->orWhere('company_name', 'like', '%' . $search . '%')
+                    ->orWhere('email', 'like', '%' . $search . '%')
+                    ->orWhere('phone', 'like', '%' . $search . '%')
+                    ->orWhere('city', 'like', '%' . $search . '%')
+                    ->orWhere('country', 'like', '%' . $search . '%');
+            });
+        }
+        return $query->latest('deleted_at')->paginate($perPage);
     }
 
 }

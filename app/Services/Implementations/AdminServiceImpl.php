@@ -41,6 +41,12 @@ class AdminServiceImpl implements AdminService
             return null;
         }
 
+        $statusToUpdate = null;
+        if (isset($data['status'])) {
+            $statusToUpdate = $data['status'];
+            unset($data['status']);
+        }
+
         if(isset($data["password"])){
             $data["password"] = Hash::make($data["password"]);
         }
@@ -49,6 +55,11 @@ class AdminServiceImpl implements AdminService
 
         if($user->isDirty()){
             $user->save();
+        }
+
+        if ($statusToUpdate !== null) {
+            $this->updateStatus($id, $statusToUpdate);
+            $user->refresh();
         }
 
         return $user;
@@ -79,10 +90,7 @@ class AdminServiceImpl implements AdminService
         $user->delete();
         return true;
     }
-
-
-
-    public function getUsers(array $filters)
+    public function getUsers(array $filters): LengthAwarePaginator
     {
         $query = User::query();
 
@@ -90,21 +98,47 @@ class AdminServiceImpl implements AdminService
             $query->where("role_id", $filters["role_id"]);
         }
 
-        if (!empty($filters["search"])) {
+        if (!empty($filters['search'])) {
             $query->where(function ($q) use ($filters) {
-                $q->where("name", "LIKE", "%" . $filters["search"] . "%")
-                    ->orWhere("email", "LIKE", "%" . $filters["search"] . "%");
+                $q->where('name', 'LIKE', '%' . $filters['search'] . '%')
+                    ->orWhere('email', 'LIKE', '%' . $filters['search'] . '%');
             });
         }
 
-        $perPage = isset($filters["per_page"]) ? (int) $filters["per_page"] : 10;
+        if (!empty($filters['status'])) {
+            $query->where('status', $filters['status']);
+        }
 
-        if(!empty($filters["role"])){
+        $roles = $filters['roles'] ?? [];
+        $noRole = $filters['no_role'] ?? false;
+
+        if (!empty($filters["role"])) {
             $query->where("name", $filters["role"]);
         }
+        if (!is_array($roles)) {
+            $roles = [$roles];
+        }
+
+        if ($noRole && count($roles) > 0) {
+            $query->where(function ($q) use ($roles) {
+                $q->whereHas('role', function ($q2) use ($roles) {
+                    $q2->whereIn('name', $roles);
+                })->orWhereNull('role_id');
+            });
+        } elseif ($noRole) {
+            $query->whereNull('role_id');
+        } elseif (count($roles) > 0) {
+            $query->whereHas('role', function ($q) use ($roles) {
+                $q->whereIn('name', $roles);
+            });
+        }
+
+        $perPage = isset($filters['per_page']) ? (int) $filters['per_page'] : 10;
 
         return $query->paginate($perPage);
     }
+
+
 
     public function addRole(array $roleName): Role
     {
@@ -176,7 +210,7 @@ class AdminServiceImpl implements AdminService
         ];
     }
 
-    public function updateStatus(int $id, string $status)
+    public function updateStatus(int $id, string $status): User
     {
         $authUser = auth()->user();
         $user = User::find($id);

@@ -19,6 +19,6 @@ interface AdminService
     public function getRoles(array $filters): LengthAwarePaginator;
     public function getUsersByRoleId(int $roleId, array $filters);
     public function updateUserRole(int $userId, int $newRoleId): array;
-    public function updateStatus(int $id, string $status);
+    public function updateStatus(int $id, string $status): User;
     public function trashed();
 }

@@ -37,12 +37,14 @@ class PurchaseResource extends JsonResource
                     'id' => $detail->id,
                     'product_id' => $detail->product_id,
                     'product_name' => $detail->product?->name,
+                    'unit_code' => $detail->product?->unit?->code,
                     'quantity' => $detail->quantity,
                     'unit_price' => $detail->unit_price,
                     'sub_total' => $detail->sub_total,
                     'note' => $detail->note,
                 ];
             }),
+
 
             'purchase_payments' => $this->payments->map(function ($payment) {
                 return [

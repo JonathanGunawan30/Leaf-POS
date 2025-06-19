@@ -24,7 +24,7 @@ class Sale extends Model
 
     public function details(): HasMany
     {
-        return $this->hasMany(SaleDetail::class, "sale_id", "id");
+        return $this->hasMany(SaleDetail::class, "sale_id", "id")->withTrashed();
     }
 
     public function payments(): HasMany
@@ -37,7 +37,7 @@ class Sale extends Model
         return $this->belongsTo(Customer::class, "customer_id", "id");
     }
 
-    public function shipments(): HasMany
+public function shipments(): HasMany
     {
         return $this->hasMany(Shipment::class, "sale_id", "id");
     }
@@ -45,6 +45,11 @@ class Sale extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class, "user_id", "id");
+    }
+
+    public function saleReturn(): HasMany
+    {
+        return $this->hasMany(SaleReturn::class, "sale_id", "id");
     }
     protected static function booted()
     {

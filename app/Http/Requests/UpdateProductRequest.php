@@ -23,7 +23,7 @@ class UpdateProductRequest extends FormRequest
      */
     public function rules(): array
     {
-        $productId = $this->route('product');
+        $productId = $this->route('id');
 
         return [
             'name' => 'sometimes|required|string|max:255',
@@ -42,6 +42,7 @@ class UpdateProductRequest extends FormRequest
             'category_id' => 'sometimes|nullable|exists:categories,id',
             'supplier_id' => 'sometimes|nullable|exists:suppliers,id',
             'images' => 'sometimes|nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'remove_image' => 'sometimes|string|in:1',
 
             'taxes' => 'sometimes|array',
             'taxes.*' => 'required|exists:taxes,id',

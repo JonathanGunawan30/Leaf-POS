@@ -50,7 +50,19 @@ class Product extends Model
         return $this->hasMany(SaleDetail::class, "product_id", "id");
     }
 
+    public function salesDetails()
+    {
+        return $this->hasMany(SaleDetail::class);
+    }
 
+    public function stockOpnameItems()
+    {
+        return $this->hasMany(StockOpnameItem::class, 'product_id', 'id');
+    }
 
+    public function saleReturnDetails()
+    {
+        return $this->hasMany(SaleReturnDetail::class, 'product_id', 'id');
+    }
 
 }

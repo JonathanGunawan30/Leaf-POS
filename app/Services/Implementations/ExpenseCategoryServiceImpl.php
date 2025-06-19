@@ -68,6 +68,13 @@ class ExpenseCategoryServiceImpl implements ExpenseCategoryService
     public function trashed()
     {
         $perPage = request()->get('per_page', 10);
-        return ExpenseCategory::onlyTrashed()->latest("deleted_at")->paginate($perPage);
+        $search = request()->get('search');
+
+        return ExpenseCategory::onlyTrashed()
+            ->when($search, function($query) use ($search) {
+                $query->where('name', 'like', '%'.$search.'%');
+            })
+            ->latest("deleted_at")
+            ->paginate($perPage);
     }
 }

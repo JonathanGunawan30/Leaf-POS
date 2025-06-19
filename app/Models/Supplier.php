@@ -27,4 +27,8 @@ class Supplier extends Model
         return $this->hasMany(Purchase::class, "supplier_id", "id");
     }
 
+    public function purchaseReturns(): HasMany
+    {
+        return $this->hasMany(PurchaseReturn::class, 'supplier_id', 'id');
+    }
 }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Exceptions\InsufficientStockException;
 use App\Exceptions\ProductNotFound;
 use App\Http\Requests\CreatePurchaseRequest;
+use App\Http\Requests\GeneratePOIssuanceRequest;
 use App\Http\Requests\UpdatePurchaseRequest;
 use App\Http\Resources\PurchaseResource;
 use App\Services\Interfaces\PurchaseService;
@@ -25,7 +26,7 @@ class PurchaseController extends Controller
         try {
             $data = $request->validated();
             $purchase = $this->purchaseService->store($data);
-            $purchase->load(['supplier', 'user.role']);
+            $purchase->load(['supplier', 'user.role', 'details.product.unit']);
             return (new PurchaseResource($purchase))->additional([
                 "message" => "Purchase created successfully",
                 "statusCode" => 201
@@ -186,7 +187,7 @@ class PurchaseController extends Controller
         } catch (\Throwable $e) {
             return response()->json([
                 "errors" => [
-                    "message" => "Something went wrong" . $e->getMessage()
+                    "message" => "Something went wrong"
                 ]
             ], 500);
         }
@@ -218,11 +219,10 @@ class PurchaseController extends Controller
         } catch (\Throwable $e) {
             return response()->json([
                 "errors" => [
-                    "message" => "Something went wrong" . $e->getMessage()
+                    "message" => "Something went wrong"
                 ]
             ], 500);
         }
     }
-
 
 }

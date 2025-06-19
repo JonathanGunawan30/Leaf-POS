@@ -1,19 +1,39 @@
 <?php
 
+use App\Http\Controllers\Api\NotificationController;
+use App\Http\Controllers\TicketController;
+use App\Http\Controllers\TicketResponseController;
 use App\Http\Controllers\UserController;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
 
 Route::middleware("guest")->group(function () {
     Route::post("/users", [UserController::class, "register"]);
     Route::post("/users/login", [UserController::class, "login"]);
 });
 
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware('auth:api')->get('/user', function () {
+    return response()->json(auth()->user());
+});
+
+Route::middleware(['auth:api'])->group(function () {
     // ENDPOINT UNTUK SEMUA USER
     Route::get('/users/current', [\App\Http\Controllers\UserController::class, 'get']);
     Route::patch('/users/current', [\App\Http\Controllers\UserController::class, 'update']);
     Route::delete('/users/logout', [\App\Http\Controllers\UserController::class, 'logout']);
     Route::patch('/users/change-password', [\App\Http\Controllers\UserController::class, 'changePassword']);
+    Route::patch('/users/change-email-or-username', [\App\Http\Controllers\UserController::class, 'changeEmailOrUsername']);
+
+    Route::get('/tickets', [TicketController::class, 'index']);
+    Route::post('/tickets', [TicketController::class, 'store']);
+    Route::get('/tickets/{ticket}', [TicketController::class, 'show']);
+    Route::post('/tickets/{ticket}/responses', [TicketResponseController::class, 'store']);
+    Route::patch('/tickets/{ticket}/status', [TicketController::class, 'updateStatus']);
+    Route::patch('/tickets/{ticket}/assign', [TicketController::class, 'assignAgent']);
+
+
+    Route::get("/dashboard/summary", [\App\Http\Controllers\DashboardController::class, 'summary']);
 
 
     // ENDPOINT UNTUK ADMIN
@@ -58,6 +78,7 @@ Route::middleware('auth:sanctum')->group(function () {
         // CATEGORY EXPENSE
         Route::post("/expense-categories", [\App\Http\Controllers\ExpenseCategoryController::class, "createExpenseCategory"]);
         Route::get("/expense-categories/trashed", [\App\Http\Controllers\ExpenseCategoryController::class, "trashed"]);
+        Route::get("/expense-categories/{id}", [\App\Http\Controllers\ExpenseCategoryController::class, "getExpenseCategoryById"]);
         Route::patch("/expense-categories/{id}", [\App\Http\Controllers\ExpenseCategoryController::class, "updateExpenseCategory"]);
         Route::get("/expense-categories", [\App\Http\Controllers\ExpenseCategoryController::class, "getExpenseCategory"]);
         Route::delete("/expense-categories/{id}", [\App\Http\Controllers\ExpenseCategoryController::class, "deleteExpenseCategory"]);
@@ -140,6 +161,17 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete("/purchase-payments/{id}", [\App\Http\Controllers\PurchasePaymentController::class, "delete"]);
         Route::patch("/purchase-payments/{id}/restore", [\App\Http\Controllers\PurchasePaymentController::class, "restore"]);
         Route::delete("/purchase-payments/{id}/force", [\App\Http\Controllers\PurchasePaymentController::class, "force"]);
+
+        // PURCHASE RETURN
+        Route::post("/purchase-returns", [\App\Http\Controllers\PurchaseReturnController::class, "store"]);
+        Route::get("/purchase-returns/trashed", [\App\Http\Controllers\PurchaseReturnController::class, "trashed"]);
+        Route::get("/purchase-returns", [\App\Http\Controllers\PurchaseReturnController::class, "index"]);
+        Route::get("/purchase-returns/{id}", [\App\Http\Controllers\PurchaseReturnController::class, "show"]);
+        Route::patch("/purchase-returns/{id}", [\App\Http\Controllers\PurchaseReturnController::class, "update"]);
+        Route::delete("/purchase-returns/{id}", [\App\Http\Controllers\PurchaseReturnController::class, "delete"]);
+        Route::patch("/purchase-returns/{id}/restore", [\App\Http\Controllers\PurchaseReturnController::class, "restore"]);
+        Route::delete("/purchase-returns/{id}/force", [\App\Http\Controllers\PurchaseReturnController::class, "force"]);
+
     });
 
     Route::middleware(["role:Admin,Sales"])->group(function () {
@@ -180,19 +212,56 @@ Route::middleware('auth:sanctum')->group(function () {
         // SALES REPORT
         Route::get("/sale-reports", [\App\Http\Controllers\SaleController::class, 'export']);
 
-            // SISA PDF EXCEL DAN PAYMENT, SEKALIAN CEK UNTUK SHIPMENT MISALNYA SHIPMENT MAU DIHAPUS GIMANA KALO NANTI RETURN
+        // SISA PDF EXCEL DAN PAYMENT, SEKALIAN CEK UNTUK SHIPMENT MISALNYA SHIPMENT MAU DIHAPUS GIMANA KALO NANTI RETURN
+
+        Route::get('/sales/shipping-cost/{customer}', [\App\Http\Controllers\SaleController::class, 'getShippingCost']);
 
         // SALES DETAIL MANAGEMENT
         Route::post('/sales/{id}/details', [\App\Http\Controllers\SaleDetailController::class, 'store']);
         Route::delete('/sales/{saleId}/details/{saleDetailId}', [\App\Http\Controllers\SaleDetailController::class, 'delete']);
 
+
+        // SALE RETURNS OPTIONAL AJA INI
+//        Route::post("/sale-returns", [\App\Http\Controllers\SaleReturnController::class, "store"]);
+
+    });
+
+    // INVENTORY MANAGEMENT
+    Route::middleware(["role:Admin, Inventory"])->group(function () {
+        // Stock Opname
+        Route::post("/stock-opnames", [\App\Http\Controllers\StockOpnameController::class, 'store']);
+        Route::get("/stock-opnames/trashed", [\App\Http\Controllers\StockOpnameController::class, 'trashed']);
+        Route::get("/stock-opnames", [\App\Http\Controllers\StockOpnameController::class, 'index']);
+        Route::get("/stock-opnames/{id}", [\App\Http\Controllers\StockOpnameController::class, 'show']);
+        Route::patch("/stock-opnames/{id}", [\App\Http\Controllers\StockOpnameController::class, 'update']);
+        Route::delete("/stock-opnames/{id}", [\App\Http\Controllers\StockOpnameController::class, 'destroy']);
+        Route::patch("/stock-opnames/{id}/restore", [\App\Http\Controllers\StockOpnameController::class, 'restore']);
+        Route::delete("/stock-opnames/{id}/force", [\App\Http\Controllers\StockOpnameController::class, 'forceDelete']);
+
+        // Stock Adjustment
+        Route::post("/stock-adjustments", [\App\Http\Controllers\StockAdjustmentController::class, 'store']);
+        Route::get("/stock-adjustments", [\App\Http\Controllers\StockAdjustmentController::class, 'index']);
+        Route::get("/stock-adjustments/{id}", [\App\Http\Controllers\StockAdjustmentController::class, 'show']);
+
+        // Stock Movement
+        Route::get("/stock-movements", [\App\Http\Controllers\StockMovementController::class, 'index']);
+        Route::get("/stock-movements/{id}", [\App\Http\Controllers\StockMovementController::class, 'show']);
     });
 
 });
+Route::middleware(['auth:api'])->group(function () {
+
+    Route::get('/notifications', [NotificationController::class, 'index']);
+    Route::get('/notifications/unread-count', [NotificationController::class, 'getUnreadCount']);
+    Route::patch('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
+    Route::patch('/notifications/mark-all-read', [NotificationController::class, 'markAllAsRead']);
+    Route::delete('/notifications/{id}', [NotificationController::class, 'destroy']);
+    Route::delete('/notifications/clear-all', [NotificationController::class, 'clearAll']);
+    Route::post('/notifications', [NotificationController::class, 'store']);
+});
+
+Route::post('/notifications/webhook', [NotificationController::class, 'webhook'])->middleware('api');
+
 
 Route::post('/forgot-password', [UserController::class, 'sendResetLink']);
 Route::post('/reset-password', [UserController::class, 'resetPassword']);
-
-
-
-

@@ -30,4 +30,5 @@ class SaleDetail extends Model
         return $this->belongsTo(Product::class, "product_id", "id");
     }
 
+
 }

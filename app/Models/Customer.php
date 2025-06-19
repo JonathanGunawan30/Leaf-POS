@@ -26,6 +26,9 @@ class Customer extends Model
         return $this->hasMany(Sale::class, "customer_id", "id");
     }
 
-
+    public function saleReturns(): HasMany
+    {
+        return $this->hasMany(SaleReturn::class, 'customer_id', 'id');
+    }
 
 }

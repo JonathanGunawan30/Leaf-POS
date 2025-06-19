@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Tax extends Model
@@ -31,6 +32,13 @@ class Tax extends Model
     {
         return $this->belongsToMany(Purchase::class, 'purchase_taxes')
             ->using(\App\Models\PurchaseTax::class)
+            ->withPivot('amount')
+            ->withTimestamps();
+    }
+
+    public function purchaseReturns(): BelongsToMany
+    {
+        return $this->belongsToMany(PurchaseReturn::class, 'purchase_return_taxes', 'tax_id', 'purchase_return_id')
             ->withPivot('amount')
             ->withTimestamps();
     }

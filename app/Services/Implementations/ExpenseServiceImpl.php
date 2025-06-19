@@ -6,6 +6,7 @@ use App\Exceptions\ExpenseForceException;
 use App\Exceptions\ExpenseRestoreException;
 use App\Models\Expense;
 use App\Services\Interfaces\ExpenseService;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
@@ -29,7 +30,7 @@ class ExpenseServiceImpl implements ExpenseService
 
     public function show($id): Expense
     {
-        $expense = Expense::with(['user.role', 'category'])->find($id);
+        $expense = Expense::withTrashed(['user.role', 'category'])->find($id);
 
         if(!$expense){
             throw new ModelNotFoundException();
@@ -58,15 +59,46 @@ class ExpenseServiceImpl implements ExpenseService
             $query->where('user_id', $request->user_id);
         }
 
+        if (!$request->filled('start_date') && !$request->filled('end_date')) {
+            if ($request->filled('start_year') || $request->filled('end_year')) {
+                if ($request->filled('start_year')) {
+                    $query->whereYear('expense_date', '>=', $request->start_year);
+                }
+                if ($request->filled('end_year')) {
+                    $query->whereYear('expense_date', '<=', $request->end_year);
+                }
+            } elseif ($request->filled('year')) {
+                $query->whereYear('expense_date', $request->year);
+            }
+
+            if ($request->filled('month') && $request->month !== 'all') {
+                $query->whereMonth('expense_date', $request->month);
+            }
+        }
+
         if ($request->filled('search')) {
-            $query->where(function ($q) use ($request) {
-                $q->where('description', 'like', '%' . $request->search . '%')
-                    ->orWhere('note', 'like', '%' . $request->search . '%');
+            $searchTerm = '%' . $request->search . '%';
+
+            $query->where(function (Builder $q) use ($searchTerm) {
+                $q->where('description', 'like', $searchTerm)
+                    ->orWhere('note', 'like', $searchTerm)
+                    ->orWhere('amount', 'like', $searchTerm)
+                    ->orWhereHas('user', function (Builder $userQuery) use ($searchTerm) {
+                        $userQuery->where('name', 'like', $searchTerm);
+                    })
+                    ->orWhereHas('category', function (Builder $categoryQuery) use ($searchTerm) {
+                        $categoryQuery->where('name', 'like', $searchTerm);
+                    })
+                    ->orWhereHas('user.role', function (Builder $roleQuery) use ($searchTerm) {
+                        $roleQuery->where('name', 'like', $searchTerm);
+                    });
             });
         }
 
         return $query->orderByDesc('expense_date')->paginate($request->get('per_page', 10));
     }
+
+
 
     public function update($id, array $data): Expense
     {
@@ -126,9 +158,32 @@ class ExpenseServiceImpl implements ExpenseService
 
     }
 
-    public function trashed()
+    public function trashed(): \Illuminate\Contracts\Pagination\LengthAwarePaginator
     {
         $perPage = request()->get('per_page', 10);
-        return Expense::onlyTrashed()->latest("deleted_at")->paginate($perPage);
+        $search = request()->get('search');
+
+        $query = Expense::onlyTrashed()->with(['user.role', 'category']);
+
+        if (!empty($search)) {
+            $searchTerm = '%' . $search . '%';
+
+            $query->where(function ($q) use ($searchTerm) {
+                $q->where('description', 'like', $searchTerm)
+                    ->orWhere('note', 'like', $searchTerm)
+                    ->orWhereHas('user', function ($userQuery) use ($searchTerm) {
+                        $userQuery->where('name', 'like', $searchTerm);
+                    })
+                    ->orWhereHas('category', function ($categoryQuery) use ($searchTerm) {
+                        $categoryQuery->where('name', 'like', $searchTerm);
+                    })
+                    ->orWhereHas('user.role', function ($roleQuery) use ($searchTerm) {
+                        $roleQuery->where('name', 'like', $searchTerm);
+                    });
+            });
+        }
+
+        return $query->latest('deleted_at')->paginate($perPage);
     }
+
 }

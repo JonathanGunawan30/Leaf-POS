@@ -23,9 +23,12 @@ class AdminUpdateUserRequest extends FormRequest
      */
     public function rules(): array
     {
+        $userId = $this->route('id');
+
         return [
-            "email" => ["sometimes", "string", "email", "max:255", "lowercase", "unique:users,email"],
+            "email" => "sometimes|string|email|max:255|lowercase|unique:users,email," . $userId,
             "name" => ["sometimes", "string", "min:2", "max:100"],
+            "status" => ["sometimes", "in:active,inactive"],
             "role_id" => ["sometimes", "integer", "exists:roles,id"]
         ];
     }
