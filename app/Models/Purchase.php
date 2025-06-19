@@ -53,6 +53,11 @@ class Purchase extends Model
         return $this->hasMany(PurchasePayment::class, "purchase_id", "id");
     }
 
+    public function purchaseReturns(): HasMany
+    {
+        return $this->hasMany(PurchaseReturn::class, 'purchase_id', 'id');
+    }
+
     protected static function booted()
     {
         static::deleting(function ($purchase) {

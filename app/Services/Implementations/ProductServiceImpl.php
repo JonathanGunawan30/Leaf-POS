@@ -2,11 +2,17 @@
 
 namespace App\Services\Implementations;
 
+use App\Events\StockAlertEvent;
+use App\Mail\StockAlertMail;
 use App\Models\Category;
+use App\Models\Notification;
 use App\Models\Product;
 use App\Models\Tax;
+use App\Models\User;
+use App\Services\NotificationService;
 use App\Services\Interfaces\ProductService;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Milon\Barcode\DNS1D;
 
@@ -79,22 +85,33 @@ class ProductServiceImpl implements ProductService
     }
     public function showProduct($id): Product
     {
-        return Product::with(['unit', 'category', 'taxes'])->findOrFail($id);
+        return Product::withTrashed()->with(['unit', 'category', 'taxes'])->findOrFail($id);
     }
 
     public function generateBarcodeBase64(string $barcode): string
-    {
-        $generator = new DNS1D();
-        $generator->setStorPath(storage_path('framework/barcodes'));
+{
+    $generator = new DNS1D();
+    $generator->setStorPath(storage_path('framework/barcodes'));
 
-        return $generator->getBarcodePNG($barcode, 'C128');
-    }
+    return $generator->getBarcodePNG($barcode, 'C128');
+}
 
     public function update(array $data, $id): Product
     {
         return DB::transaction(function () use ($data, $id) {
             $product = Product::with('taxes')->findOrFail($id);
             $oldPurchasePrice = $product->purchase_price;
+
+            if (isset($data['remove_image']) && $data['remove_image'] === '1') {
+                $data['images'] = 'product-images/product-default.jpg';
+            }
+
+            if (isset($data['images']) && is_object($data['images'])) {
+                $originalExtension = $data['images']->getClientOriginalExtension();
+                $filename = Str::uuid() . '.' . $originalExtension;
+                $path = $data['images']->storeAs('product-images', $filename, 'public');
+                $data['images'] = $path;
+            }
 
             $product->update($data);
 
@@ -104,9 +121,30 @@ class ProductServiceImpl implements ProductService
                 $this->recalculateProductTaxAmounts($product, $data['purchase_price']);
             }
 
+            if ($product->stock <= $product->stock_alert) {
+                // Create notification service instance
+                $notificationService = new NotificationService();
+
+                // Create stock alert notification
+                $notification = $notificationService->createStockAlert($product, null, false);
+
+                // Broadcast the event with the notification
+                event(new StockAlertEvent($product, $notification));
+
+                $users = User::whereHas('role', function ($query) {
+                    $query->whereIn('name', ['Admin', 'Purchasing', 'Inventory']);
+                })->get();
+
+                foreach ($users as $user) {
+                    Mail::to($user->email)->send(new StockAlertMail($product));
+                }
+            }
+
+
             return $product->refresh()->load(['unit', 'category', 'taxes']);
         });
     }
+
 
     private function syncProductTaxes(Product $product, array $taxIds): void
     {
@@ -136,7 +174,9 @@ class ProductServiceImpl implements ProductService
         $query = Product::with(['unit', 'category', 'taxes'])->latest();
 
         if ($search = request()->get('search')) {
-            $query->where('name', 'like', "%{$search}%");
+            $query->where('name', 'like', "%{$search}%")
+            ->orWhere('sku', 'like', "%{$search}%")
+            ->orWhere('barcode', 'like', "%{$search}%");
         }
 
         if ($categoryId = request()->get('category_id')) {
@@ -160,7 +200,14 @@ class ProductServiceImpl implements ProductService
         }
 
         $perPage = request()->get('per_page', 10);
-        return $query->paginate($perPage);
+        $products =  $query->paginate($perPage);
+
+        $products->getCollection()->transform(function ($product) {
+            $product->barcode_image = $this->generateBarcodeBase64($product->barcode);
+            return $product;
+        });
+
+        return $products;
     }
 
     public function softdelete($id)
@@ -203,12 +250,43 @@ class ProductServiceImpl implements ProductService
 
     public function trashed()
     {
-        $perPage = request('per_page', 10);
-
-        return Product::onlyTrashed()
+        $query = Product::onlyTrashed()
             ->with(['unit', 'category', 'taxes'])
-            ->latest('deleted_at')
-            ->paginate($perPage);
+            ->latest('deleted_at');
+
+        if ($search = request()->get('search')) {
+            $query->where('name', 'like', "%{$search}%");
+        }
+
+        if ($categoryId = request()->get('category_id')) {
+            $query->where('category_id', $categoryId);
+        }
+
+        if ($minPurchase = request()->get('min_purchase')) {
+            $query->where('purchase_price', '>=', $minPurchase);
+        }
+
+        if ($maxPurchase = request()->get('max_purchase')) {
+            $query->where('purchase_price', '<=', $maxPurchase);
+        }
+
+        if ($minSelling = request()->get('min_selling')) {
+            $query->where('selling_price', '>=', $minSelling);
+        }
+
+        if ($maxSelling = request()->get('max_selling')) {
+            $query->where('selling_price', '<=', $maxSelling);
+        }
+
+        $perPage = request()->get('per_page', 10);
+        $products = $query->paginate($perPage);
+
+        $products->getCollection()->transform(function ($product) {
+            $product->barcode_image = $this->generateBarcodeBase64($product->barcode);
+            return $product;
+        });
+
+        return $products;
     }
 
 

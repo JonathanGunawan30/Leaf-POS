@@ -16,6 +16,14 @@ export default {
                 'poppins': ['Poppins']
                 // sans: ['Figtree', ...defaultTheme.fontFamily.sans],
             },
+            colors: {
+                'lp-green': '#2F8451',
+                'neon-green': '#39FF14',
+                'neon-green-light': '#5CFF5C',
+            },
+            boxShadow: {
+                'neon-green': '0 0 12px #39FF14',
+            }
         },
     },
 

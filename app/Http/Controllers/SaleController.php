@@ -8,6 +8,8 @@ use App\Exceptions\CourierNotFoundException;
 use App\Exceptions\CustomerNotFound;
 use App\Exceptions\DistanceNotFound;
 use App\Exceptions\ProductNotFound;
+use App\Exceptions\RestoreException;
+use App\Exceptions\SaleCannotBeDeletedException;
 use App\Exceptions\SaleDetailNotFoundException;
 use App\Exceptions\ShipmentNotFoundException;
 use App\Exceptions\StockNotEnoughException;
@@ -16,21 +18,28 @@ use App\Http\Requests\CreateSaleRequest;
 use App\Http\Requests\SalesReportExportRequest;
 use App\Http\Requests\UpdateSaleRequest;
 use App\Http\Resources\SaleResource;
+use App\Models\Customer;
 use App\Models\Sale;
 use App\Services\Interfaces\SaleService;
+use App\Services\ShippingService;
 use Barryvdh\DomPDF\Facade\Pdf;
+use HttpException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Maatwebsite\Excel\Facades\Excel;
+use Nette\Schema\ValidationException;
 
 class SaleController extends Controller
 {
     protected SaleService $saleService;
+    protected $shippingService;
 
-    public function __construct(SaleService $saleService)
+    public function __construct(SaleService $saleService, ShippingService $shippingService)
     {
         $this->saleService = $saleService;
+        $this->shippingService = $shippingService;
     }
 
     public function store(CreateSaleRequest $request)
@@ -90,7 +99,7 @@ class SaleController extends Controller
         } catch (\Throwable $e){
             return response()->json([
                 "errors" => [
-                    "message" => "Something went wrong"
+                    "message" => "Something went wrong "
                 ]
             ], 500);
         }
@@ -197,7 +206,7 @@ class SaleController extends Controller
         catch (\Throwable $e){
             return response()->json([
                 "errors" => [
-                    "message" => "Something went wrong"
+                    "message" => "Something went wrong "
                 ]
             ], 500);
         }
@@ -237,10 +246,23 @@ class SaleController extends Controller
                     "message" => "Sale id not found"
                 ]
             ], 404);
-        } catch (\Throwable $e){
+        } catch (ValidationException $e){
             return response()->json([
                 "errors" => [
-                    "message" => "Something went wrong"
+                    "message" => $e->getMessage()
+                ]
+            ], 422);
+        } catch (SaleCannotBeDeletedException $e){
+            return response()->json([
+                "errors" => [
+                    "message" => $e->getMessage()
+                ]
+            ], 403);
+        }
+        catch (\Throwable $e){
+            return response()->json([
+                "errors" => [
+                    "message" => "Something went wrong " . $e->getMessage()
                 ]
             ], 500);
         }
@@ -260,10 +282,29 @@ class SaleController extends Controller
                     "message" => "Sale id not found"
                 ]
             ], 404);
-        }catch (\Throwable $e){
+        } catch (ValidationException $e){
             return response()->json([
                 "errors" => [
-                    "message" => "Something went wrong"
+                    "message" => "No stock available for any products. Please wait for stock replenishment."
+                ]
+            ], 403);
+        } catch (RestoreException $e){
+            return response()->json([
+                "errors" => [
+                    "message" => $e->getMessage()
+                ]
+            ], 422);
+        } catch (SaleCannotBeDeletedException $e){
+            return response()->json([
+                "errors" => [
+                    "message" => $e->getMessage()
+                ]
+            ], 403);
+        }
+        catch (\Throwable $e){
+            return response()->json([
+                "errors" => [
+                    "message" => "Something went wrong " . $e->getMessage()
                 ]
             ], 500);
         }
@@ -417,6 +458,21 @@ class SaleController extends Controller
                     "message" => "Something went wrong". $e->getMessage()
                 ]
             ], 500);
+        }
+    }
+
+    public function getShippingCost(Customer $customer)
+    {
+        try {
+            $origin = env('SHIPPING_ORIGIN', 'Default Origin Address');
+            $destination = $customer->address;
+
+            $shippingDetails = $this->shippingService->getShippingDetails($origin, $destination);
+
+            return response()->json($shippingDetails);
+        } catch (\Exception $e) {
+            Log::error("Error calculating shipping cost for customer {$customer->id}: " . $e->getMessage());
+            return response()->json(['error' => 'Could not calculate shipping cost: ' . $e->getMessage()], 500);
         }
     }
 

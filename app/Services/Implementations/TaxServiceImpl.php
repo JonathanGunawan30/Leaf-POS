@@ -39,7 +39,12 @@ class TaxServiceImpl implements TaxService
     public function getAll(): LengthAwarePaginator
     {
         $perPage = request()->get('per_page', 10);
-        return Tax::paginate($perPage);
+        $search = request()->get('search');
+
+        return Tax::when($search, function ($query, $search) {
+            $query->where('name', 'like', "%{$search}%")
+                ->orWhere('rate', 'like', "%{$search}%");
+        })->paginate($perPage);
     }
 
     public function softdelete($id)
@@ -106,6 +111,13 @@ class TaxServiceImpl implements TaxService
     public function trashed()
     {
         $perPage = request()->get('per_page', 10);
-        return Tax::onlyTrashed()->latest("deleted_at")->paginate($perPage);
+
+        $search = request()->get('search');
+
+        return Tax::onlyTrashed()->when($search, function ($query, $search) {
+            $query->where('name', 'like', "%{$search}%")
+                ->orWhere('rate', 'like', "%{$search}%");
+        })->latest('deleted_at')
+            ->paginate($perPage);
     }
 }

@@ -4,8 +4,10 @@ namespace App\Providers;
 
 use App\Models\Shipment;
 use App\Observers\ShipmentObserver;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
+use Inertia\Inertia;
 
 class AppServiceProvider extends ServiceProvider
 {

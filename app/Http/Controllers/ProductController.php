@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Support\Facades\Log;
 
 class ProductController extends Controller
 {
@@ -44,11 +45,14 @@ class ProductController extends Controller
         try {
             $product = $this->productService->showProduct($id);
             $barcodeBase64 = $this->productService->generateBarcodeBase64($product->barcode);
+
+            $product->barcode_image = $barcodeBase64;
+
             return (new ProductResource($product))->additional([
-                'barcode_image' => 'data:image/png;base64,' . $barcodeBase64,
                 'message' => 'Product retrieved successfully',
                 'statusCode' => 200,
             ]);
+
 
         } catch (ModelNotFoundException $e){
             return response()->json([
@@ -85,7 +89,7 @@ class ProductController extends Controller
       } catch (\Throwable $e ){
           return response()->json([
               "errors" => [
-                  "message" => "Something went wrong"
+                  "message" => "Something went wrong "
               ]
           ], 500);
       }
@@ -103,7 +107,7 @@ class ProductController extends Controller
         } catch (\Throwable $e){
             return response()->json([
                 "errors" => [
-                    "message" => "Something went wrong"
+                    "message" => "Something went wrong",
                 ]
             ], 500);
         }

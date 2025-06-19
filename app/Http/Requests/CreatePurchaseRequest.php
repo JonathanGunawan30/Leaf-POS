@@ -5,6 +5,7 @@ namespace App\Http\Requests;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Validation\Rule;
 
 class CreatePurchaseRequest extends FormRequest
 {
@@ -23,8 +24,15 @@ class CreatePurchaseRequest extends FormRequest
      */
     public function rules(): array
     {
+        $purchaseId = $this->route('purchase') ? $this->route('purchase')->id : null;
+
         return [
-            "invoice_number" => ["required", "string", "max:100","unique:purchases,invoice_number"],
+            "invoice_number" => [
+                "required",
+                "string",
+                "max:100",
+                Rule::unique('purchases', 'invoice_number')->ignore($purchaseId)
+            ],
             "purchase_date" => ["required", "date"],
 //            "total_amount" => ["required", "numeric", "min:0"],
             "total_discount" => ["required", "numeric", "min:0"],
@@ -34,18 +42,24 @@ class CreatePurchaseRequest extends FormRequest
             "due_date" => ["nullable", "date"],
             "estimated_arrival_date" => ["required", "date"],
             "actual_arrival_date" => ["nullable", "date"],
-            "supplier_id" => ["required", "integer", "exists:suppliers,id"],
-
+            "supplier_id" => [
+                "required",
+                "integer",
+                Rule::exists('suppliers', 'id')->whereNull('deleted_at')
+            ],
 
             'purchase_details' => ['required', 'array', 'min:1'],
-            'purchase_details.*.product_id' => ['required', 'integer', 'exists:products,id'],
+            'purchase_details.*.product_id' => [
+                'required',
+                'integer',
+                Rule::exists('products', 'id')->whereNull('deleted_at')
+            ],
             'purchase_details.*.quantity' => ['required', 'integer', 'min:1'],
 //            'purchase_details.*.unit_price' => ['required', 'numeric', 'min:0'],
 //            'purchase_details.*.sub_total' => ['required', 'numeric', 'min:0'],
             'purchase_details.*.note' => ['nullable', 'string', 'max:500'],
 
-
-            'purchase_payments' => ['required', 'array'],
+            'purchase_payments' => ['required', 'array', 'min:1'],
             'purchase_payments.*.payment_date' => ['required', 'date'],
             'purchase_payments.*.amount' => ['required', 'numeric', 'min:0'],
             'purchase_payments.*.due_date' => ['nullable', 'date'],
@@ -53,9 +67,12 @@ class CreatePurchaseRequest extends FormRequest
             'purchase_payments.*.status' => ['required', 'in:unpaid,paid,failed'],
             'purchase_payments.*.note' => ['nullable', 'string', 'max:500'],
 
-
-            'taxes' => 'required|array',
-            'taxes.*.tax_id' => 'required|exists:taxes,id',
+            'taxes' => ['nullable', 'array'],
+            'taxes.*.tax_id' => [
+                'required',
+                'integer',
+                Rule::exists('taxes', 'id')->whereNull('deleted_at')
+            ],
         ];
     }
 

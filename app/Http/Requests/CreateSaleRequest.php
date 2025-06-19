@@ -26,7 +26,7 @@ class CreateSaleRequest extends FormRequest
         return [
             "sale_date" => ["required", "date"],
             "total_discount" => ["required", "numeric"],
-            "status" => ["required", "in:pending,confirmed,shipped,delivered,cancelled"],
+            "status" => ["required", "in:pending,confirmed,shipped,delivered,cancelled,indent"],
             "due_date" => ["nullable", "date"],
             "note" => ["nullable", "string", "max:500"],
             "customer_id" => ["required", "integer"],

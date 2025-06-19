@@ -27,9 +27,22 @@ class CourierServiceImpl implements CourierService
 
     public function getAll()
     {
-        $perPage = Request()->get("per_page", 10);
+        $perPage = request()->get("per_page", 10);
+        $search = request()->get("search");
+        $status = request()->get("status");
 
-        return Courier::query()->paginate($perPage);
+        $query = Courier::query();
+
+        if ($search) {
+            $query->where('name', 'like', '%' . $search . '%')
+            ->orWhere('phone', 'like', '%' . $search . '%');
+        }
+
+        if (!is_null($status)) {
+            $query->where('status', $status);
+        }
+
+        return $query->paginate($perPage);
     }
 
     public function softdelete($id)
@@ -63,6 +76,21 @@ class CourierServiceImpl implements CourierService
     public function trashed()
     {
         $perPage = request()->get('per_page', 10);
-        return Courier::onlyTrashed()->latest("deleted_at")->paginate($perPage);
+        $search = request()->get('search');
+        $status = request()->get('status');
+
+        $query = Courier::onlyTrashed()->latest('deleted_at');
+
+        if ($search) {
+            $query->where('name', 'like', '%' . $search . '%')
+            ->orWhere('phone', 'like', '%' . $search . '%');
+        }
+
+        if (!is_null($status)) {
+            $query->where('status', $status);
+        }
+
+        return $query->paginate($perPage);
     }
+
 }

@@ -21,6 +21,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Validation\ValidationException;
+use Spatie\Permission\Models\Permission;
 use Throwable;
 
 class AdminController extends Controller
@@ -69,7 +70,20 @@ class AdminController extends Controller
 
             return new AdminResource($user);
 
-        } catch (\Throwable $e) {
+        } catch(ModelNotFoundException $e) {
+            return response()->json([
+                'errors' => ['message' => 'User not found']
+            ], 404);
+        } catch (AuthorizationException $e) {
+            return response()->json([
+                'errors' => ['message' => $e->getMessage()]
+            ], 403);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'errors' => ['message' => $e->errors()['message'][0] ?? 'Validation error.']
+            ], 422);
+        }
+        catch (\Throwable $e) {
             return response()->json([
                 'errors' => ['message' => 'Something went wrong']
             ], 500);
@@ -189,7 +203,7 @@ class AdminController extends Controller
 
     public function getUsers(Request $request): AnonymousResourceCollection
     {
-        $filters = $request->only(["role_id", "search", "per_page", "role"]);
+        $filters = $request->only(["role_id", "search", "status" ,"per_page", "role", 'roles', 'no_role']);
         $users = $this->adminService->getUsers($filters);
 
         return AdminResource::collection($users);
@@ -534,4 +548,104 @@ class AdminController extends Controller
 
 
 
+    /**
+     * Get all permissions
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getPermissions()
+    {
+        try {
+            // Get all permissions
+            $permissions = Permission::all();
+
+            return response()->json([
+                'data' => $permissions
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'errors' => [
+                    'message' => 'Failed to get permissions: ' . $e->getMessage()
+                ]
+            ], 500);
+        }
+    }
+
+    /**
+     * Get permissions for a specific role
+     *
+     * @param int $id Role ID
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getRolePermissions($id)
+    {
+        try {
+            $role = Role::findOrFail($id);
+            $permissions = $role->permissions;
+
+            return response()->json([
+                'data' => $permissions
+            ]);
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'errors' => [
+                    'message' => 'Role not found'
+                ]
+            ], 404);
+        } catch (\Exception $e) {
+            return response()->json([
+                'errors' => [
+                    'message' => 'Failed to get role permissions: ' . $e->getMessage()
+                ]
+            ], 500);
+        }
+    }
+
+    /**
+     * Update permissions for a specific role
+     *
+     * @param \Illuminate\Http\Request $request
+     * @param int $id Role ID
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function updateRolePermissions(Request $request, $id)
+    {
+        try {
+            $role = Role::findOrFail($id);
+
+            // Validate request
+            $request->validate([
+                'permissions' => 'required|array',
+                'permissions.*' => 'exists:permissions,id'
+            ]);
+
+            // Sync permissions
+            $role->permissions()->sync($request->permissions);
+
+            return response()->json([
+                'data' => [
+                    'message' => 'Role permissions updated successfully',
+                    'role' => new RoleResource($role)
+                ]
+            ]);
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'errors' => [
+                    'message' => 'Role not found'
+                ]
+            ], 404);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'errors' => [
+                    'message' => $e->errors()
+                ]
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'errors' => [
+                    'message' => 'Failed to update role permissions: ' . $e->getMessage()
+                ]
+            ], 500);
+        }
+    }
 }

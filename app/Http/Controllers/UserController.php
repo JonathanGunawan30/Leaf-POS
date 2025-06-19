@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ChangeAccountInformationRequest;
 use App\Http\Requests\UserChangePasswordRequest;
 use App\Http\Requests\UserLoginRequest;
 use App\Http\Requests\UserRegisterRequest;
@@ -40,13 +41,19 @@ class UserController extends Controller
         $data = $request->validated();
 
         $user = $this->userService->login($data);
+        $token = $user->token;
 
-        return new UserResource($user);
+        return (new UserResource($user))->additional([
+            'token' => $token,
+        ]);
     }
+
+
 
     public function get(): UserResource
     {
         $user = $this->userService->get();
+        $user->load('role');
         return new UserResource($user);
     }
 
@@ -120,6 +127,24 @@ class UserController extends Controller
 
         return response()->json(['message' => 'Password changed successfully.'], 200);
     }
+
+    public function changeEmailOrUsername(ChangeAccountInformationRequest $request): JsonResponse
+    {
+        $user = $request->user();
+
+        $data = $request->only(['name', 'email']);
+
+        $user->update($data);
+
+        return response()->json([
+            "data" => [
+                "email" => $user->email,
+                "name" => $user->name,
+            ],
+            "message" => "Email updated successfully."
+        ]);
+    }
+
 
 
 }

@@ -37,7 +37,11 @@ class UnitServiceImpl implements UnitService
     public function getAll(): LengthAwarePaginator
     {
         $perPage = request()->get('per_page', 10);
-        return Unit::paginate($perPage);
+        $search = request()->get('search');
+        return Unit::when($search, function ($query, $search) {
+            $query->where('name', 'like', "%{$search}%")
+            ->orWhere('code', 'like', "%{$search}%");
+        })->paginate($perPage);
     }
 
     public function deleteById($id)
@@ -96,6 +100,11 @@ class UnitServiceImpl implements UnitService
     public function trashed()
     {
         $perPage = request()->get('per_page', 10);
-        return Unit::onlyTrashed()->latest("deleted_at")->paginate($perPage);
+        $search = request()->get('search');
+        return Unit::onlyTrashed()->when($search, function ($query, $search) {
+            $query->where('name', 'like', "%{$search}%")
+            ->orWhere('code', 'like', "%{$search}%");
+        })->latest('deleted_at')
+            ->paginate($perPage);
     }
 }

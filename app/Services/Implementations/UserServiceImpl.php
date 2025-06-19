@@ -9,6 +9,7 @@ use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Tymon\JWTAuth\Facades\JWTAuth;
 
 class UserServiceImpl implements UserService
 {
@@ -21,11 +22,17 @@ class UserServiceImpl implements UserService
 
     function login(array $data): Authenticatable
     {
-        if (!Auth::attempt(['email' => $data['email'], 'password' => $data['password']])) {
+//        if (!Auth::attempt(['email' => $data['email'], 'password' => $data['password']])) {
+//            throw new HttpResponseException(response([
+//                "errors" => [
+//                    "message" => ["Email or password is wrong"]
+//                ]
+//            ], 401));
+//        }
+
+        if (!$token = JWTAuth::attempt(['email' => $data['email'], 'password' => $data['password']])) {
             throw new HttpResponseException(response([
-                "errors" => [
-                    "message" => ["Email or password is wrong"]
-                ]
+                "errors" => ["message" => ["Email or password is wrong"]]
             ], 401));
         }
 
@@ -39,7 +46,7 @@ class UserServiceImpl implements UserService
             ], 403));
         }
 
-        $token = $user->createToken('X-API-Token')->plainTextToken;
+//        $token = $user->createToken('X-API-Token')->plainTextToken;
 
         $user->token = $token;
         return $user;

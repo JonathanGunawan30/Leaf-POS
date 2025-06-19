@@ -29,6 +29,7 @@ class UpdateExpenseRequest extends FormRequest
             "note" => ["sometimes", "nullable", "string", "max:500"],
             "amount" => ["sometimes", "numeric", "min:0"],
             "category_id" => ["sometimes", "integer", "exists:expense_categories,id"],
+            "user_id" => ["sometimes", "integer", "exists:users,id"],
         ];
 
     }
