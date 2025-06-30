@@ -2,11 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\StockAlertEvent;
+use App\Mail\StockAlertMail;
 use App\Models\Product;
 use App\Models\StockAdjustment;
 use App\Models\StockMovement;
+use App\Models\User;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 
 class StockAdjustmentController extends Controller
@@ -32,7 +37,6 @@ class StockAdjustmentController extends Controller
 
             $product = Product::findOrFail($request->product_id);
 
-            // Verify that the previous stock matches the current product stock
             if ($product->stock != $request->previous_stock) {
                 return response()->json([
                     'errors' => [
@@ -41,11 +45,9 @@ class StockAdjustmentController extends Controller
                 ], 409);
             }
 
-            // Calculate the adjustment value
             $adjustment = $request->new_stock - $request->previous_stock;
 
             return DB::transaction(function () use ($request, $product, $adjustment) {
-                // Create the stock adjustment record
                 $stockAdjustment = StockAdjustment::create([
                     'product_id' => $request->product_id,
                     'user_id' => auth()->id(),
@@ -55,11 +57,26 @@ class StockAdjustmentController extends Controller
                     'notes' => $request->notes
                 ]);
 
-                // Update the product stock
                 $product->stock = $request->new_stock;
                 $product->save();
 
-                // Create a stock movement record
+
+                if ($product->stock <= $product->stock_alert) {
+                    $notificationService = new NotificationService();
+
+                    $notification = $notificationService->createStockAlert($product, null, false);
+
+                    event(new StockAlertEvent($product, $notification));
+
+                    $users = User::whereHas('role', function ($query) {
+                        $query->whereIn('name', ['Admin', 'Purchasing', 'Inventory']);
+                    })->get();
+
+                    foreach ($users as $user) {
+                        Mail::to($user->email)->send(new StockAlertMail($product));
+                    }
+                }
+
                 StockMovement::create([
                     'product_id' => $product->id,
                     'user_id' => auth()->id(),
@@ -78,6 +95,7 @@ class StockAdjustmentController extends Controller
                     'statusCode' => 201
                 ], 201);
             });
+
         } catch (\Exception $e) {
             return response()->json([
                 'errors' => [

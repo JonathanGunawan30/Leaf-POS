@@ -23,7 +23,7 @@
                                 v-model="form.email"
                                 class="w-full p-3  border rounded-lg focus:ring focus:ring-green-300"
                                 :class="{ 'border-red-500': form.errors.email }"
-                                placeholder="LeafPost@gmail.com"
+                                placeholder="LeafPos@gmail.com"
                                 required
                             />
                             <span class="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#2F8451]">
@@ -43,7 +43,7 @@
                                 v-model="form.password"
                                 class="w-full p-3 pr-10 border rounded-lg focus:ring focus:ring-green-300"
                                 :class="{ 'border-red-500': form.errors.password }"
-                                placeholder="LeafPostPassword"
+                                placeholder="Enter your password"
                                 required
                             />
                             <button

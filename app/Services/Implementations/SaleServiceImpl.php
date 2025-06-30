@@ -199,8 +199,9 @@ class SaleServiceImpl implements SaleService
                 throw new CustomerNotFound();
             }
 
-            $destination = $customer->address;
-            $totalShippingCost = $this->calculateShippingCost($origin, $destination);
+//            $destination = $customer->address;
+//            $totalShippingCost = $this->calculateShippingCost($origin, $destination);
+            $totalShippingCost = rand(50000, 200000);
 
             $grandTotal = ($totalAmount - $data['total_discount']) + $totalTax + $totalShippingCost;
 
@@ -421,26 +422,34 @@ class SaleServiceImpl implements SaleService
     private function geocode($address)
     {
         $encodedAddress = urlencode($address);
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, "https://nominatim.openstreetmap.org/search?q={$encodedAddress}&format=json");
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, [
-            "User-Agent: MyAppName/1.0 (contact@myapp.com)"
-        ]);
-        $response = curl_exec($ch);
-        if (curl_errno($ch)) {
-            echo 'Curl error: ' . curl_error($ch);
+        $url = "https://nominatim.openstreetmap.org/search?q={$encodedAddress}&format=json";
+
+        $opts = [
+            "http" => [
+                "method" => "GET",
+                "header" => "User-Agent: LeafPOS/1.0 (jgunawan3005@gmail.com)"
+            ]
+        ];
+        $context = stream_context_create($opts);
+
+        $response = file_get_contents($url, false, $context);
+
+        if ($response === FALSE) {
+            throw new \Exception("Failed to fetch data from Nominatim");
         }
-        curl_close($ch);
+
         $data = json_decode($response, true);
+
         if (isset($data[0])) {
-            $lat = $data[0]['lat'];
-            $lon = $data[0]['lon'];
-            return ['lat' => $lat, 'lon' => $lon];
+            return [
+                'lat' => $data[0]['lat'],
+                'lon' => $data[0]['lon']
+            ];
         } else {
             throw new AddressNotFound();
         }
     }
+
 
 
     private function calculateDistance($originCoords, $destinationCoords)

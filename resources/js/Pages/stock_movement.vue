@@ -41,7 +41,6 @@
                             <option value="sale">Sale</option>
                             <option value="purchase">Purchase</option>
                             <option value="purchase_return">Purchase Return</option>
-                            <option value="return">Return</option>
                         </select>
 
                         <div class="relative inline-block">
@@ -89,6 +88,18 @@
                                 </div>
                             </div>
                         </div>
+
+                        <button
+                            @click="refreshData"
+                            :disabled="loading"
+                            class="px-4 py-2 bg-lp-green text-white rounded-lg hover:bg-green-700 transition-colors duration-200 flex items-center gap-2 disabled:opacity-50"
+                        >
+                            <svg class="w-4 h-4" :class="{ 'animate-spin': loading }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                            </svg>
+                            <span class="text-sm">{{ loading ? 'Loading...' : 'Sync' }}</span>
+                        </button>
                     </div>
                 </div>
 
@@ -115,6 +126,8 @@
                         Clear All
                     </button>
                 </div>
+
+
 
                 <!-- Loading State -->
                 <div v-if="loading" class="overflow-x-auto rounded-lg">
@@ -286,6 +299,10 @@ const startDate = ref(null)
 const endDate = ref(null)
 
 const searchTimeout = ref(null)
+
+const refreshData = () => {
+    fetchStockMovements();
+}
 
 const saveFilterState = () => {
     const filterState = {
@@ -568,7 +585,20 @@ const exportToPDF = async () => {
         }
     })
 
-    const allStockMovements = await fetchAllStockMovements()
+
+    const allStockMovementsResponse = await fetchAllStockMovements()
+    const allStockMovements = allStockMovementsResponse.data
+
+    if (!Array.isArray(allStockMovements)) {
+        console.error('Error: allStockMovements is not an array.', allStockMovements)
+        Swal.fire({
+            title: 'Error',
+            text: 'Failed to fetch data for export. The data is not in the expected format.',
+            icon: 'error',
+            confirmButtonText: 'OK'
+        })
+        return
+    }
 
     const doc = new jsPDF()
 
@@ -656,41 +686,75 @@ const exportToExcel = async () => {
         }
     })
 
-    const allStockMovements = await fetchAllStockMovements()
+    try {
+        const response = await axios.get('/api/stock-movements', {
+            params: {
+                per_page: 99999999999,
+                movement_type: selectedMovementType.value || null,
+                start_date: startDate.value || null,
+                end_date: endDate.value || null,
+                search: searchQuery.value.trim() || null
+            }
+        })
 
-    const worksheet = XLSX.utils.aoa_to_sheet([[
-        "No", "Date", "Product", "User", "Type", "Previous Stock", "New Stock", "Quantity", "Notes"
-    ]])
+        const allStockMovements = response.data.data.data
 
-    allStockMovements.forEach((item, index) => {
-        XLSX.utils.sheet_add_aoa(worksheet, [[
-            index + 1,
-            formatDateTime(item.created_at),
-            item.product?.name || 'N/A',
-            item.user?.name || 'N/A',
-            capitalizeFirstLetter(item.movement_type),
-            item.previous_stock,
-            item.new_stock,
-            item.quantity,
-            item.notes || ''
-        ]], { origin: -1 })
-    })
+        if (!Array.isArray(allStockMovements)) {
+            console.error('Error: allStockMovements is not an array.', allStockMovements)
+            Swal.fire({
+                title: 'Error',
+                text: 'Failed to fetch data for export. The data is not in the expected format.',
+                icon: 'error',
+                confirmButtonText: 'OK'
+            })
+            return
+        }
 
-    const workbook = XLSX.utils.book_new()
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Stock Movements")
+        const worksheet = XLSX.utils.aoa_to_sheet([[
+            "No", "Date", "Product", "User", "Type", "Previous Stock", "New Stock", "Quantity", "Notes"
+        ]])
 
-    let fileName = 'stock-movement-history'
-    if (selectedMovementType.value) {
-        fileName = `${selectedMovementType.value}-stock-movements`
+        allStockMovements.forEach((item, index) => {
+            XLSX.utils.sheet_add_aoa(worksheet, [[
+                index + 1,
+                formatDateTime(item.created_at),
+                item.product?.name || 'N/A',
+                item.user?.name || 'N/A',
+                capitalizeFirstLetter(item.movement_type),
+                item.previous_stock,
+                item.new_stock,
+                item.quantity,
+                item.notes || ''
+            ]], { origin: -1 })
+        })
+
+        const workbook = XLSX.utils.book_new()
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Stock Movements")
+
+        let fileName = 'stock-movement-history'
+        if (selectedMovementType.value) {
+            fileName = `${selectedMovementType.value}-stock-movements`
+        }
+        if (startDate.value) {
+            fileName += `-from-${startDate.value}`
+        }
+        if (endDate.value) {
+            fileName += `-to-${endDate.value}`
+        }
+
+        Swal.close()
+        XLSX.writeFile(workbook, `${fileName}.xlsx`)
+
+    } catch (error) {
+        console.error('Error fetching data for Excel export:', error)
+        Swal.fire({
+            title: 'Error',
+            text: 'Failed to fetch all stock movements for export.',
+            icon: 'error',
+            confirmButtonText: 'OK'
+        })
+    } finally {
+        Swal.close()
     }
-    if (startDate.value) {
-        fileName += `-from-${startDate.value}`
-    }
-    if (endDate.value) {
-        fileName += `-to-${endDate.value}`
-    }
-
-    Swal.close()
-    XLSX.writeFile(workbook, `${fileName}.xlsx`)
 }
 </script>

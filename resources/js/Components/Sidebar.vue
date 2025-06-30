@@ -1,43 +1,78 @@
 <template>
     <div class="flex">
-        <div class="fixed inset-y-0 left-0 w-66 bg-gradient-to-b from-lp-green to-lp-green text-white shadow-lg flex flex-col">
+        <!-- Sidebar -->
+        <div class="fixed inset-y-0 left-0 w-[270px] bg-gradient-to-b from-lp-green to-lp-green text-white shadow-lg flex flex-col">
             <div class="p-6 border-b border-white/10">
                 <div class="flex items-center space-x-3">
                     <img src="/images/leafPos1.svg" alt="Leaf POS Logo" class="w-8 h-8" />
                     <h3 class="text-xl font-semibold text-white">Leaf POS</h3>
                 </div>
             </div>
-            <nav class="flex-1 overflow-y-auto p-4">
-                <ul class="space-y-2">
-                    <li v-for="item in navigationItems" :key="item.name">
-                        <!-- Link biasa -->
-                        <Link
-                            v-if="!item.submenu"
-                            :href="item.path"
-                            class="flex items-center px-4 py-3 rounded-lg transition-colors hover:bg-white/10"
-                            :class="{ 'bg-white/20': $page.url === item.path }"
-                        >
-                            <component :is="item.icon" class="mr-3" />
-                            <span>{{ item.name }}</span>
-                        </Link>
 
-                        <!-- Submenu -->
-                        <div v-else>
+            <nav class="flex-1 overflow-y-auto p-4">
+                <!-- Skeleton loading state -->
+                <div v-if="isLoadingUser && !cachedUser" class="space-y-2">
+                    <div v-for="i in 8" :key="i" class="animate-pulse">
+                        <div class="flex items-center px-4 py-3 rounded-lg">
+                            <div class="w-6 h-6 bg-white/20 rounded mr-3 flex-shrink-0"></div>
+                            <div class="h-4 bg-white/20 rounded flex-1"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <ul v-else class="space-y-2">
+                    <li v-for="item in filteredNavigationItems" :key="item.name">
+
+                        <div v-if="!item.submenu || item.submenu.length === 0">
                             <Link
                                 :href="item.path"
-                                @click.prevent="toggleSubmenu(item.name)"
-                                class="w-full flex items-center justify-between px-4 py-3 rounded-lg transition-colors hover:bg-white/10"
-                                :class="{ 'bg-white/20': openedSubmenu === item.name || isSubmenuActive(item) }"
+                                class="w-full flex items-center px-4 py-3 rounded-lg transition-colors group"
+                                :class="{
+                                  'bg-white/20 font-medium text-white': isMenuItemActive(item),
+                                  'hover:bg-white/10 text-white/90': !isMenuItemActive(item)
+                                }"
                             >
-                                <div class="flex items-center">
-                                    <component :is="item.icon" class="mr-3" />
-                                    <span>{{ item.name }}</span>
+                                <div class="w-6 h-6 mr-3 flex-shrink-0 flex items-center justify-center">
+                                    <component
+                                        :is="item.icon"
+                                        class="w-full h-full object-contain"
+                                        :class="{
+                                          'filter brightness-0 invert': isMenuItemActive(item),
+                                          'filter brightness-0 invert opacity-90': !isMenuItemActive(item)
+                                        }"
+                                    />
+                                </div>
+                                <span class="truncate text-sm font-medium">{{ item.name }}</span>
+                            </Link>
+                        </div>
+
+                        <div v-else>
+                            <button
+                                @click="toggleSubmenu(item.name)"
+                                class="w-full flex items-center justify-between px-4 py-3 rounded-lg transition-colors group"
+                                :class="{
+                                  'bg-white/20 font-medium text-white': openedSubmenu === item.name || isSubmenuActive(item),
+                                  'hover:bg-white/10 text-white/90': !(openedSubmenu === item.name || isSubmenuActive(item))
+                                }"
+                            >
+                                <div class="flex items-center min-w-0">
+                                    <div class="w-6 h-6 mr-3 flex-shrink-0 flex items-center justify-center">
+                                        <component
+                                            :is="item.icon"
+                                            class="w-full h-full object-contain"
+                                            :class="{
+                                                'filter brightness-0 invert': openedSubmenu === item.name || isSubmenuActive(item),
+                                                'filter brightness-0 invert opacity-90': !(openedSubmenu === item.name || isSubmenuActive(item))
+                                              }"
+                                        />
+                                    </div>
+                                    <span class="truncate text-sm font-medium">{{ item.name }}</span>
                                 </div>
                                 <i :class="[
-                                    'ri-arrow-right-s-line text-xl transition-transform duration-200',
-                                    { 'rotate-90': openedSubmenu === item.name || isSubmenuActive(item) }
+                                  'ri-arrow-right-s-line text-lg transition-transform duration-200 flex-shrink-0 ml-2',
+                                  { 'rotate-90': openedSubmenu === item.name || isSubmenuActive(item) }
                                 ]"></i>
-                            </Link>
+                            </button>
 
                             <transition
                                 enter-active-class="transition-all duration-200 ease-out overflow-hidden"
@@ -49,23 +84,35 @@
                             >
                                 <ul
                                     v-if="openedSubmenu === item.name || isSubmenuActive(item)"
-                                    class="mt-1 ml-4 space-y-1"
+                                    class="mt-1 ml-6 space-y-1"
                                 >
                                     <li v-for="subItem in item.submenu" :key="subItem.path">
                                         <Link
                                             :href="subItem.path"
-                                            class="flex items-center px-4 py-2 text-sm rounded-lg transition-colors hover:bg-white/10"
+                                            class="flex items-center px-4 py-2 rounded-lg transition-colors group"
+                                            :class="{
+                                                'bg-white/30 text-white font-medium': isSubItemActive(subItem),
+                                                'hover:bg-white/10 text-white/80': !isSubItemActive(subItem)
+                                              }"
                                         >
-                                            <div class="flex items-center px-[10px] w-full min-w-0 space-x-2">
-                                            <svg width="14" height="15" viewBox="0 0 14 15" fill="none" xmlns="http://www.w3.org/2000/svg"
-                                                     :class="{
-                                                      'fill-white': isSubItemActive(subItem),
-                                                      'fill-white/20': !isSubItemActive(subItem)
-                                                    }"
-                                                >
-                                                    <circle cx="7" cy="7.02393" r="7" />
-                                                </svg>
-                                                <span class="truncate text-sm block">
+                                            <div class="flex items-center w-full min-w-0">
+                                                <div class="w-3 h-3 mr-3 flex-shrink-0 flex items-center justify-center">
+                                                    <svg
+                                                        width="12"
+                                                        height="12"
+                                                        viewBox="0 0 14 15"
+                                                        fill="none"
+                                                        xmlns="http://www.w3.org/2000/svg"
+                                                        class="w-full h-full"
+                                                        :class="{
+                                                          'fill-white': isSubItemActive(subItem),
+                                                          'fill-white/60': !isSubItemActive(subItem)
+                                                        }"
+                                                    >
+                                                        <circle cx="7" cy="7.02393" r="7" />
+                                                    </svg>
+                                                </div>
+                                                <span class="truncate text-sm">
                                                   {{ subItem.name }}
                                                 </span>
                                             </div>
@@ -74,14 +121,12 @@
                                 </ul>
                             </transition>
                         </div>
-
-
                     </li>
                 </ul>
             </nav>
         </div>
 
-        <!-- Konten utama -->
+
         <div class="ml-[270px] flex flex-col min-h-screen w-full">
             <Navbar />
             <div class="flex-grow p-8">
@@ -97,8 +142,9 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue'
-import { Link, usePage } from '@inertiajs/vue3'
+import { ref, computed, onMounted, watch } from 'vue'
+import { Link, usePage, router } from '@inertiajs/vue3'
+import axios from 'axios'
 import Navbar from './Navbar.vue'
 import Footer from './Footer.vue'
 
@@ -120,18 +166,94 @@ import CourierIcon from '/resources/assets/icons/courier.svg';
 
 const page = usePage()
 const openedSubmenu = ref(null)
-const activeSubmenu = ref(null)
+const currentUser = ref(null)
+const isLoadingUser = ref(true)
+const cachedUser = ref(null)
 
-const navigationItems = [
+// Cache keys
+const USER_CACHE_KEY = 'leafpos_user_data'
+const CACHE_EXPIRY_KEY = 'leafpos_user_cache_expiry'
+const CACHE_DURATION = 5 * 60 * 1000 // 5 minutes
+
+const loadCachedUser = () => {
+    try {
+        const cached = localStorage.getItem(USER_CACHE_KEY)
+        const expiry = localStorage.getItem(CACHE_EXPIRY_KEY)
+
+        if (cached && expiry && Date.now() < parseInt(expiry)) {
+            cachedUser.value = JSON.parse(cached)
+            currentUser.value = cachedUser.value
+            console.log('Loaded user from cache:', cachedUser.value)
+            return true
+        }
+    } catch (error) {
+        console.error('Error loading cached user:', error)
+    }
+    return false
+}
+
+const saveUserToCache = (userData) => {
+    try {
+        localStorage.setItem(USER_CACHE_KEY, JSON.stringify(userData))
+        localStorage.setItem(CACHE_EXPIRY_KEY, (Date.now() + CACHE_DURATION).toString())
+    } catch (error) {
+        console.error('Error saving user to cache:', error)
+    }
+}
+
+const clearUserCache = () => {
+    localStorage.removeItem(USER_CACHE_KEY)
+    localStorage.removeItem(CACHE_EXPIRY_KEY)
+}
+
+const fetchCurrentUser = async () => {
+    try {
+        isLoadingUser.value = true
+        const response = await axios.get('/api/users/current')
+
+        // Ambil data dari response.data.data sesuai struktur API
+        const userData = response.data.data
+        currentUser.value = userData
+        cachedUser.value = userData
+
+        saveUserToCache(userData)
+
+        console.log('User data from API:', userData)
+        console.log('User role:', userData?.role?.name)
+    } catch (error) {
+        console.error('Error fetching user data:', error)
+
+        if (cachedUser.value) {
+            currentUser.value = cachedUser.value
+            console.log('Using cached user data due to API error')
+        } else {
+            currentUser.value = null
+            clearUserCache()
+        }
+    } finally {
+        isLoadingUser.value = false
+    }
+}
+
+const userRole = computed(() => {
+    if (!currentUser.value || !currentUser.value.role) {
+        return 'Guest'
+    }
+    return currentUser.value.role.name || 'Guest'
+})
+
+const allNavigationItems = [
     {
         name: 'Dashboard',
         path: '/dashboard',
-        icon: DashboardIcon
+        icon: DashboardIcon,
+        roles: ['Admin', 'Finance', 'Purchasing', 'Sales', 'Inventory']
     },
     {
         name: 'Products',
         path: '/products/all',
         icon: ProductsIcon,
+        roles: ['Admin', 'Purchasing'],
         submenu: [
             { name: 'All Products', path: '/products/all' },
             { name: 'Create Products', path: '/products/create' },
@@ -143,6 +265,7 @@ const navigationItems = [
         name: 'Inventory',
         icon: InventoryIcon,
         path: '/stock-opname/all',
+        roles: ['Admin', 'Inventory'],
         submenu: [
             { name: 'All Stock Opnames', path: '/stock-opname/all' },
             { name: 'Create Stock Opname', path: '/stock-opname/create' },
@@ -154,6 +277,7 @@ const navigationItems = [
         name: 'Purchases',
         icon: PurchasesIcon,
         path: '/purchases/all',
+        roles: ['Admin', 'Purchasing'],
         submenu: [
             { name: 'All Purchases', path: '/purchases/all' },
             { name: 'Create Purchase', path: '/purchases/create' },
@@ -164,6 +288,7 @@ const navigationItems = [
         name: 'Purchase Return',
         icon: PurchaseReturnIcon,
         path: '/purchase-returns/all',
+        roles: ['Admin', 'Purchasing'],
         submenu: [
             { name: 'All Purchase Return', path: '/purchase-returns/all' },
             { name: 'Create Purchase Return', path: '/purchase-returns/create' },
@@ -173,16 +298,17 @@ const navigationItems = [
         name: 'Sales',
         icon: SalesIcon,
         path: '/sales/all',
+        roles: ['Admin', 'Sales'],
         submenu: [
             { name: 'All Sales', path: '/sales/all' },
             { name: 'Create Sales', path: '/sales/create' },
         ]
     },
-    // { name: 'Sales Return', icon: SalesReturnIcon },
     {
         name: 'Expenses',
         icon: ExpensesIcon,
         path: '/expenses/all',
+        roles: ['Admin', 'Finance'],
         submenu: [
             { name: 'All Expenses', path: '/expenses/all' },
             { name: 'Create Expenses', path: '/expenses/create' },
@@ -193,15 +319,14 @@ const navigationItems = [
         name: 'Parties',
         icon: PartiesIcon,
         path: '/customers/all',
-        submenu: [
-            { name: 'Customers', path: '/customers/all' },
-            { name: 'Suppliers', path: '/suppliers/all' },
-        ]
+        roles: ['Admin', 'Purchasing', 'Sales'],
+        submenu: []
     },
     {
         name: 'Couriers',
         icon: CourierIcon,
         path: '/couriers/all',
+        roles: ['Admin', 'Sales'],
         submenu: [
             { name: 'All Couriers', path: '/couriers/all' },
             { name: 'Create Courier', path: '/couriers/create' },
@@ -211,21 +336,23 @@ const navigationItems = [
         name: 'User Management',
         path: '/users/all',
         icon: UserManagementIcon,
+        roles: ['Admin'],
         submenu: [
             { name: 'All Users', path: '/users/all' },
-            { name: 'Create User', path: '/users/create' },
-            { name: 'Role & Permissions', path: '/users/roles' }
+            { name: 'Create User', path: '/users/create' }
         ]
     },
     {
         name: 'Reports',
         icon: ReportsIcon,
-        path: '/reports'
+        path: '/reports',
+        roles: ['Admin']
     },
     {
         name: 'Taxes',
         path: '/taxes/all',
         icon: TaxesIcon,
+        roles: ['Admin', 'Finance'],
         submenu: [
             { name: 'All Taxes', path: '/taxes/all' },
             { name: 'Create Taxes', path: '/taxes/create' },
@@ -235,16 +362,97 @@ const navigationItems = [
         name: 'Settings',
         icon: SettingsIcon,
         path: '/units/all',
+        roles: ['Admin'],
         submenu: [
             { name: 'All Units', path: '/units/all' },
         ]
     }
 ]
+
+const filteredNavigationItems = computed(() => {
+    const currentRole = userRole.value
+
+    console.log('Filtering navigation for role:', currentRole)
+
+    if (currentRole === 'Guest') {
+        console.log('User is Guest, showing no menu items')
+        return []
+    }
+
+    const filtered = allNavigationItems.filter(item => {
+
+        const hasAccess = item.roles.includes(currentRole)
+
+        if (!hasAccess) {
+            console.log(`Access denied for ${item.name} - User role: ${currentRole}, Required roles:`, item.roles)
+            return false
+        }
+
+        console.log(`Access granted for ${item.name}`)
+        return true
+    }).map(item => {
+
+        if (item.name === 'Parties') {
+            const currentRole = userRole.value
+            const partiesSubmenu = []
+
+            if (currentRole === 'Admin') {
+                partiesSubmenu.push(
+                    { name: 'Customers', path: '/customers/all' },
+                    { name: 'Suppliers', path: '/suppliers/all' }
+                )
+            } else if (currentRole === 'Purchasing') {
+                partiesSubmenu.push(
+                    { name: 'Suppliers', path: '/suppliers/all' }
+                )
+
+                item.path = '/suppliers/all'
+            } else if (currentRole === 'Sales') {
+                partiesSubmenu.push(
+                    { name: 'Customers', path: '/customers/all' }
+                )
+
+                item.path = '/customers/all'
+            }
+
+            return {
+                ...item,
+                submenu: partiesSubmenu
+            }
+        }
+
+        return item
+    })
+
+    console.log('Filtered navigation items:', filtered.map(item => item.name))
+    return filtered
+})
+
+const isMenuItemActive = (item) => {
+    const currentUrl = page.url
+
+    if (item.name === 'Dashboard') {
+        return currentUrl === '/dashboard' || currentUrl === '/'
+    }
+
+    if (item.name === 'Reports') {
+        return currentUrl === '/reports' || currentUrl.startsWith('/reports/')
+    }
+
+    if (!item.submenu || item.submenu.length === 0) {
+        return currentUrl === item.path || currentUrl.startsWith(item.path + '/')
+    }
+
+    return false
+}
+
 const toggleSubmenu = (menuName) => {
     openedSubmenu.value = openedSubmenu.value === menuName ? null : menuName
 }
+
 const isSubmenuActive = (item) => {
-    if (!item.submenu) return false
+    if (!item.submenu || item.submenu.length === 0) return false
+
     if (item.name === 'Products') {
         return page.url.startsWith('/products') || page.url.startsWith('/categories')
     }
@@ -304,12 +512,15 @@ const isSubItemActive = (subItem) => {
     if (subItem.name === 'All Products') {
         return url.startsWith('/products/') && !url.startsWith('/products/create') && !url.startsWith('/products/print-barcode');
     }
+
     if (subItem.name === 'Create Products') {
         return url.startsWith('/products/create');
     }
+
     if(subItem.name === 'Print Barcode'){
         return url.startsWith('/products/print-barcode')
     }
+
     if (subItem.name === 'Categories') {
         return url.startsWith('/categories/');
     }
@@ -334,7 +545,7 @@ const isSubItemActive = (subItem) => {
         return url.startsWith('/expenses/') && !url.startsWith('/expenses/create');
     }
 
-    if (subItem.name === 'Expense Create'){
+    if (subItem.name === 'Create Expenses'){
         return url.startsWith('/expenses/create')
     }
 
@@ -359,10 +570,12 @@ const isSubItemActive = (subItem) => {
     if (subItem.name === 'All Users') {
         return url.startsWith('/users/') && !url.startsWith('/users/create');
     }
+
     if (subItem.name === 'Create User') {
         return url.startsWith('/users/create');
     }
-    if (subItem.name === 'Role & Permissions') {
+
+    if(subItem.name === 'Role & Permissions') {
         return url.startsWith('/users/roles');
     }
 
@@ -370,6 +583,7 @@ const isSubItemActive = (subItem) => {
     if(subItem.name === 'All Taxes') {
         return url.startsWith('/taxes/') && !url.startsWith('/taxes/create');
     }
+
     if(subItem.name === 'Create Taxes') {
         return url.startsWith('/taxes/create');
     }
@@ -382,7 +596,6 @@ const isSubItemActive = (subItem) => {
         return url.startsWith('/couriers/create');
     }
 
-    // Purchases submenu
     if(subItem.name === 'All Purchases') {
         return url.startsWith('/purchases/') && !url.startsWith('/purchases/create') && !url.startsWith('/purchases/generate-po-issuance')
             && !url.startsWith('/purchase-returns/') && !url.startsWith('/purchase-returns/create');
@@ -399,6 +612,7 @@ const isSubItemActive = (subItem) => {
     if(subItem.name === 'Create Purchase') {
         return url.startsWith('/purchases/create');
     }
+
     if(subItem.name === 'PO Issuance') {
         return url.startsWith('/purchases/generate-po-issuance');
     }
@@ -411,12 +625,53 @@ const isSubItemActive = (subItem) => {
         return url.startsWith('/sales/create');
     }
 
-    // Fallback match
     return url === subItem.path || url.startsWith(subItem.path + '/');
 }
 
+watch(() => page.url, (newUrl) => {
+    filteredNavigationItems.value.forEach(item => {
+        if (item.submenu && item.submenu.length > 0) {
+            const isActive = isSubmenuActive(item)
+            if (isActive && openedSubmenu.value !== item.name) {
+                openedSubmenu.value = item.name
+            }
+        }
+    })
+}, { immediate: true })
 
+const initializeComponent = () => {
+    const hasCachedUser = loadCachedUser()
+    const token = localStorage.getItem('X-API-TOKEN')
+    if(!token){
+        router.visit('/')
+        return
+    }
+    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
 
+    fetchCurrentUser()
+}
+
+onMounted(() => {
+    initializeComponent()
+})
+
+let refreshInterval = null
+const setupRefreshInterval = () => {
+    refreshInterval = setInterval(() => {
+        fetchCurrentUser()
+    }, 10 * 60 * 1000)
+}
+
+onMounted(() => {
+    setupRefreshInterval()
+})
+
+import { onUnmounted } from 'vue'
+onUnmounted(() => {
+    if (refreshInterval) {
+        clearInterval(refreshInterval)
+    }
+})
 </script>
 
 <style scoped>
@@ -439,29 +694,25 @@ const isSubItemActive = (subItem) => {
     max-height: 500px;
 }
 
-/* Animasi untuk ikon */
-.arrow-icon {
-    transition: transform 0.2s ease;
-}
-.arrow-icon.rotated {
-    transform: rotate(90deg);
-}
-
 /* Scrollbar styling */
 nav::-webkit-scrollbar {
     width: 6px;
 }
+
 nav::-webkit-scrollbar-track {
     background: rgba(255, 255, 255, 0.1);
     border-radius: 8px;
 }
+
 nav::-webkit-scrollbar-thumb {
     background: rgba(255, 255, 255, 0.2);
     border-radius: 8px;
 }
+
 nav::-webkit-scrollbar-thumb:hover {
     background: rgba(255, 255, 255, 0.3);
 }
+
 nav {
     scrollbar-width: thin;
     scrollbar-color: rgba(255, 255, 255, 0.2) rgba(255, 255, 255, 0.1);

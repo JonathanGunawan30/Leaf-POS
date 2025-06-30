@@ -2,7 +2,6 @@
     <div class="bg-gray-100">
         <Sidebar :auth="auth">
             <div class="bg-white rounded-lg shadow-sm p-6">
-                <!-- Add Category Modal -->
                 <div v-show="showAddModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 transition-opacity duration-300 ease-in-out" :class="{ 'opacity-0': !showAddModal, 'opacity-100': showAddModal }">
                     <div class="bg-white rounded-lg p-6 w-96 shadow-lg transition-transform duration-300 ease-in-out transform" :class="{ 'scale-90 opacity-0': !showAddModal, 'scale-100 opacity-100': showAddModal }">
                         <div class="flex justify-between items-center mb-4">
@@ -42,7 +41,6 @@
                     </div>
                 </div>
 
-                <!-- Edit Category Modal -->
                 <div v-show="showEditModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 transition-opacity duration-300 ease-in-out" :class="{ 'opacity-0': !showEditModal, 'opacity-100': showEditModal }">
                     <div class="bg-white rounded-lg p-6 w-96 shadow-lg transition-transform duration-300 ease-in-out transform" :class="{ 'scale-90 opacity-0': !showEditModal, 'scale-100 opacity-100': showEditModal }">
                         <div class="flex justify-between items-center mb-4">
@@ -82,7 +80,6 @@
                     </div>
                 </div>
 
-                <!-- Search and Add Header -->
                 <div class="flex justify-between items-center mb-6">
                     <div class="relative border-lp-green">
                         <input
@@ -108,10 +105,19 @@
                             <i class="ri-add-line"></i>
                             Add Category
                         </button>
+                        <button
+                            @click="refreshData"
+                            :disabled="loading"
+                            class="px-4 py-2 bg-lp-green text-white rounded-lg hover:bg-green-700 transition-colors duration-200 flex items-center space-x-2 disabled:opacity-50"
+                        >
+                            <svg class="w-4 h-4" :class="{ 'animate-spin': loading }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                            </svg>
+                            <span class="text-sm">{{ loading ? 'Loading...' : 'Sync' }}</span>
+                        </button>
                     </div>
                 </div>
 
-                <!-- Loading State -->
                 <div v-if="loading" class="overflow-x-auto rounded-lg">
                     <table class="w-full">
                         <thead class="bg-lp-green bg-opacity-20">
@@ -122,7 +128,6 @@
                         </tr>
                         </thead>
                         <tbody>
-                        <!-- Skeleton Rows -->
                         <tr v-for="n in 5" :key="n" class="border-b hover:bg-gray-50">
                             <td class="px-4 py-3">
                                 <div class="w-12 h-6 bg-gray-300 rounded-md animate-pulse"></div>
@@ -142,7 +147,6 @@
                     </table>
                 </div>
 
-                <!-- Categories Table -->
                 <div v-else class="overflow-x-auto rounded-lg">
                     <table class="w-full">
                         <thead class="bg-lp-green bg-opacity-20">
@@ -160,14 +164,12 @@
                             </td>
                             <td class="px-4 py-3 text-right">
                                 <div class="flex gap-1 justify-end">
-                                    <!-- Button Delete -->
                                     <button
                                         @click="deleteCategory(item.id, item.name)"
                                         class="p-1.5 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors">
                                         <trash-icon class="" />
                                     </button>
 
-                                    <!-- Button Edit -->
                                     <button
                                         @click="openEditModal(item)"
                                         class="p-1.5 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
@@ -175,7 +177,6 @@
                                         <pencil-icon class="" />
                                     </button>
 
-                                    <!-- Button Info -->
                                     <button
                                         @click="goToDetail(item.id)"
                                         class="p-2 bg-lp-green text-white rounded-md hover:bg-lp-green-dark transition-colors">
@@ -188,14 +189,12 @@
                     </table>
                 </div>
 
-                <!-- Pagination -->
                 <div class="flex justify-between items-center mt-4">
                     <span class="text-sm text-gray-600">
                       Showing {{ isNaN(from) ? 0 : from }} - {{ isNaN(to) ? 0 : to }} of {{ totalResults ?? 0 }} results
                     </span>
 
                     <div class="flex items-center gap-2">
-                        <!-- Previous -->
                         <button
                             @click="handlePageChange(currentPage - 1)"
                             :disabled="currentPage === 1"
@@ -205,7 +204,6 @@
                             <i class="ri-arrow-left-s-line"></i>
                         </button>
 
-                        <!-- Page Numbers -->
                         <div class="flex items-center">
                             <button
                                 v-for="page in displayedPages"
@@ -225,7 +223,6 @@
                             </button>
                         </div>
 
-                        <!-- Next -->
                         <button
                             @click="handlePageChange(currentPage + 1)"
                             :disabled="currentPage === totalPages"
@@ -268,6 +265,10 @@ const newCategory = ref({ name: '' })
 const editCategory = ref({ id: null, name: '' })
 
 const searchTimeout = ref(null)
+
+const refreshData = () => {
+    fetchCategories();
+};
 
 const saveFilterState = () => {
     const filterState = {
@@ -380,7 +381,7 @@ const updateCategory = async () => {
         isSubmitting.value = true
         await axios.patch(`/api/categories/${editCategory.value.id}`, {
             name: editCategory.value.name
-        })
+        });
 
         Swal.fire({
             title: 'Success',
@@ -390,11 +391,11 @@ const updateCategory = async () => {
             customClass: {
                 confirmButton: 'bg-green-700 hover:bg-green-800 text-white px-4 py-2 rounded-md focus:outline-none transition-colors duration-200'
             },
-        })
+        });
 
         showEditModal.value = false
 
-        fetchCategories()
+        fetchCategories();
     } catch (error) {
         console.error('Error updating category:', error)
 

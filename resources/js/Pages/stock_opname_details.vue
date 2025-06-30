@@ -166,7 +166,7 @@
                                     </div>
                                     <div class="h-[45px] flex self-stretch justify-start items-center flex-row gap-2.5 py-[9px] px-[15px] bg-[#FFFFFF] border-solid border-[#AEADAD] border rounded-[10px]">
                                         <span class="text-[#2E2E2E] text-[15px] leading-6">
-                                            {{ stockOpname?.approved_by?.name ?? '-' }}
+                                            {{ stockOpname?.approved_by ?? '-' }}
                                         </span>
                                     </div>
                                 </div>

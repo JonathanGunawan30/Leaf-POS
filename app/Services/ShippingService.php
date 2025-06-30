@@ -19,7 +19,7 @@ class ShippingService
     {
         $encodedAddress = urlencode($address);
         $response = Http::withHeaders([
-            "User-Agent" => "MyAppName/1.0 (contact@myapp.com)"
+            "User-Agent" => "LeafPOS/1.0 (jgunawan3005@gmail.com)"
         ])->get("https://nominatim.openstreetmap.org/search?q={$encodedAddress}&format=json");
 
         $data = $response->json();

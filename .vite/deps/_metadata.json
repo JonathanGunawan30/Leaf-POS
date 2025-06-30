@@ -1,0 +1,76 @@
+{
+  "hash": "fd8ebba2",
+  "configHash": "bdfaecb3",
+  "lockfileHash": "6e60a28d",
+  "browserHash": "3c714f26",
+  "optimized": {
+    "@inertiajs/vue3": {
+      "src": "../../node_modules/@inertiajs/vue3/dist/index.esm.js",
+      "file": "@inertiajs_vue3.js",
+      "fileHash": "353dd49b",
+      "needsInterop": false
+    },
+    "laravel-vite-plugin/inertia-helpers": {
+      "src": "../../node_modules/laravel-vite-plugin/inertia-helpers/index.js",
+      "file": "laravel-vite-plugin_inertia-helpers.js",
+      "fileHash": "49015c31",
+      "needsInterop": false
+    },
+    "vue": {
+      "src": "../../node_modules/vue/dist/vue.runtime.esm-bundler.js",
+      "file": "vue.js",
+      "fileHash": "2cdba4fc",
+      "needsInterop": false
+    },
+    "v-click-outside": {
+      "src": "../../node_modules/v-click-outside/dist/v-click-outside.umd.js",
+      "file": "v-click-outside.js",
+      "fileHash": "f0cd65a7",
+      "needsInterop": true
+    },
+    "@tsparticles/vue3": {
+      "src": "../../node_modules/@tsparticles/vue3/dist/particles.es.js",
+      "file": "@tsparticles_vue3.js",
+      "fileHash": "5e5fd18a",
+      "needsInterop": false
+    },
+    "@tsparticles/slim": {
+      "src": "../../node_modules/@tsparticles/slim/browser/index.js",
+      "file": "@tsparticles_slim.js",
+      "fileHash": "9ece578f",
+      "needsInterop": false
+    },
+    "axios": {
+      "src": "../../node_modules/axios/index.js",
+      "file": "axios.js",
+      "fileHash": "f60176b2",
+      "needsInterop": false
+    },
+    "laravel-echo": {
+      "src": "../../node_modules/laravel-echo/dist/echo.js",
+      "file": "laravel-echo.js",
+      "fileHash": "da25e1a0",
+      "needsInterop": false
+    },
+    "pusher-js": {
+      "src": "../../node_modules/pusher-js/dist/web/pusher.js",
+      "file": "pusher-js.js",
+      "fileHash": "9979636f",
+      "needsInterop": true
+    }
+  },
+  "chunks": {
+    "chunk-IJV5NOMV": {
+      "file": "chunk-IJV5NOMV.js"
+    },
+    "chunk-AZGBLERE": {
+      "file": "chunk-AZGBLERE.js"
+    },
+    "chunk-FH2SCWAL": {
+      "file": "chunk-FH2SCWAL.js"
+    },
+    "chunk-G3PMV62Z": {
+      "file": "chunk-G3PMV62Z.js"
+    }
+  }
+}

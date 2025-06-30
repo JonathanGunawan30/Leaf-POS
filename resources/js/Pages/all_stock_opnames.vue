@@ -99,8 +99,21 @@
                                         Apply
                                     </button>
                                 </div>
+
+
                             </div>
                         </div>
+                        <button
+                            @click="refreshData"
+                            :disabled="loading"
+                            class="px-5 py-2.5 bg-lp-green text-white rounded-lg hover:bg-green-700 transition-colors duration-200 flex items-center gap-2 disabled:opacity-50"
+                        >
+                            <svg class="w-4 h-4" :class="{ 'animate-spin': loading }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                            </svg>
+                            <span class="text-sm">{{ loading ? 'Loading...' : 'Sync' }}</span>
+                        </button>
                     </div>
                 </div>
 
@@ -333,6 +346,10 @@ const editingStockOpnameId = ref(null)
 const printDropdownOpen = ref(null);
 
 const searchTimeout = ref(null)
+
+const refreshData = () => {
+    fetchStockOpnames();
+};
 
 const saveFilterState = () => {
     const filterState = {
@@ -642,7 +659,7 @@ const exportToPDF = async () => {
             capitalizeFirstLetter(item.status),
             item.notes || 'N/A',
             item.location || 'N/A',
-            item.approved_by?.name || 'N/A'
+            item.approved_by || 'N/A'
         ]);
 
         doc.autoTable({

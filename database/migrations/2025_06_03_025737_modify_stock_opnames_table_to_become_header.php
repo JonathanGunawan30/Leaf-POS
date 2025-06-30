@@ -10,6 +10,7 @@ return new class extends Migration
     {
         Schema::table('stock_opnames', function (Blueprint $table) {
             $table->dropForeign(['last_updated_by']);
+            $table->dropForeign(['product_id']);
 
             $table->dropColumn([
                 'product_id',

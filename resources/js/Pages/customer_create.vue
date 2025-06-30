@@ -113,11 +113,20 @@
                             </div>
 
                             <div class="flex flex-col gap-[5px] self-stretch">
-                                <p class="text-[#000000] text-xs leading-6">Address <span class="text-red-500">*</span>
-                                </p>
+                                <p class="text-[#000000] text-xs leading-6">Address <span class="text-red-500">*</span></p>
                                 <input v-model="customerForm.address" placeholder="Enter full address"
-                                       class="py-[9px] px-[15px] border border-gray-300 rounded-[10px] h-[45px] text-[15px] outline-none w-full"/>
-                            </div>
+                                       class="py-[9px] px-[15px] border border-gray-300 rounded-[10px] h-[45px] text-[15px] outline-none w-full"
+                                       :class="{'border-red-500': addressError}" /> <p v-if="addressError" class="text-red-500 text-xs mt-1">{{ addressError }}</p> </div>
+
+<!--                            <iframe-->
+<!--                                width="100%"-->
+<!--                                height="250"-->
+<!--                                frameborder="0"-->
+<!--                                style="border:0; border-radius: 10px"-->
+<!--                                referrerpolicy="no-referrer-when-downgrade"-->
+<!--                                :src="`https://www.google.com/maps/embed/v1/place?q=${encodeURIComponent(customerForm.address || 'Tangerang, Indonesia')}&key=${googleMapsKey}`"-->
+<!--                                allowfullscreen>-->
+<!--                            </iframe>-->
 
                             <iframe
                                 width="100%"
@@ -125,7 +134,7 @@
                                 frameborder="0"
                                 style="border:0; border-radius: 10px"
                                 referrerpolicy="no-referrer-when-downgrade"
-                                :src="`https://www.google.com/maps/embed/v1/place?q=${encodeURIComponent(customerForm.address || 'Tangerang, Indonesia')}&key=${googleMapsKey}`"
+                                :src="customerMapSrc"
                                 allowfullscreen>
                             </iframe>
 
@@ -200,10 +209,23 @@
                 </div>
 
 
+<!--                <div class="flex self-stretch justify-start items-center pt-4">-->
+<!--                    <button-->
+<!--                        @click="createCustomer"-->
+<!--                        class="flex justify-center items-center gap-2.5 py-[5px] px-[30px] bg-[#2F8451] hover:!bg-[#256F43] rounded-[10px] w-[186px] h-[48px] transition-all duration-200 hover:scale-105"-->
+<!--                    >-->
+<!--                        <span class="text-white text-sm font-medium leading-6">Create Customer</span>-->
+<!--                    </button>-->
+<!--                </div>-->
+
+
+
                 <div class="flex self-stretch justify-start items-center pt-4">
                     <button
                         @click="createCustomer"
+                        :disabled="!isAddressGeocodedValid && customerForm.address.length > 0"
                         class="flex justify-center items-center gap-2.5 py-[5px] px-[30px] bg-[#2F8451] hover:!bg-[#256F43] rounded-[10px] w-[186px] h-[48px] transition-all duration-200 hover:scale-105"
+                        :class="{'opacity-50 cursor-not-allowed': !isAddressGeocodedValid && customerForm.address.length > 0}"
                     >
                         <span class="text-white text-sm font-medium leading-6">Create Customer</span>
                     </button>
@@ -213,14 +235,24 @@
     </div>
 </template>
 
+
+
 <script setup>
 import Sidebar from '@/Components/Sidebar.vue'
-import {onMounted, ref} from 'vue'
+import {onMounted, ref, watch} from 'vue'
 import axios from 'axios'
 import Swal from "sweetalert2";
 import {router} from '@inertiajs/vue3'
-const googleMapsKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
+// Fungsi debounce sederhana
+const debounce = (func, delay) => {
+    let timeout;
+    return function(...args) {
+        const context = this;
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(context, args), delay);
+    };
+};
 
 const token = localStorage.getItem('X-API-TOKEN')
 
@@ -229,7 +261,7 @@ const customerForm = ref({
     company_name: '',
     email: '',
     phone: '',
-    address: '',
+    address: '', // Pastikan ini string kosong
     city: '',
     province: '',
     postal_code: '',
@@ -243,8 +275,98 @@ const customerForm = ref({
     note: ''
 });
 
+const customerMapSrc = ref('');
+const addressError = ref(''); // Variabel baru untuk pesan error alamat
+const isAddressGeocodedValid = ref(false); // Variabel baru untuk status validasi alamat
+
+
+// Fungsi asinkron yang akan di-debounce
+const updateMapBasedOnAddress = async (newAddress) => {
+    console.log('Debounced function called. newAddress:', newAddress);
+
+    // Reset error dan status validasi setiap kali fungsi dipanggil
+    addressError.value = '';
+    isAddressGeocodedValid.value = false; // Asumsikan tidak valid sampai terbukti
+
+    if (newAddress) {
+        try {
+            console.log('Fetching coordinates via Laravel proxy for:', newAddress);
+            const response = await axios.get('/api/geocode-address', {
+                params: {
+                    q: newAddress,
+                }
+            });
+
+            console.log('Nominatim Proxy API Response:', response.data);
+
+            if (response.data && response.data.length > 0) {
+                const lat = response.data[0].lat;
+                const lon = response.data[0].lon;
+
+                if (lat && lon) {
+                    customerMapSrc.value = `https://www.openstreetmap.org/export/embed.html?bbox=${lon},${lat},${lon},${lat}&layer=mapnik&marker=${lat},${lon}`;
+                    console.log('Map URL updated to:', customerMapSrc.value);
+                    isAddressGeocodedValid.value = true; // Alamat ditemukan dan valid
+                } else {
+                    console.warn('Nominatim returned data but lat/lon were invalid.');
+                    addressError.value = 'The geocoding service returned invalid coordinates.';
+                    customerMapSrc.value = `https://www.openstreetmap.org/export/embed.html?bbox=106.6300, -6.2000, 106.6300, -6.2000&layer=mapnik&marker=-6.2000,106.6300`;
+                }
+            } else {
+                console.warn('Address not found by Nominatim proxy, showing default map.');
+                addressError.value = 'Sorry, the address you entered could not be found on the map. Please ensure the address is complete and correct.';
+                customerMapSrc.value = `https://www.openstreetmap.org/export/embed.html?bbox=106.6300, -6.2000, 106.6300, -6.2000&layer=mapnik&marker=-6.2000,106.6300`;
+            }
+        } catch (error) {
+            console.error('Error fetching geocoding data from Laravel proxy:', error.response?.data || error.message);
+
+            if (error.response && (error.response.status === 404 || error.response.status === 400)) {
+                // Nominatim mungkin mengembalikan 400 jika query terlalu pendek/invalid
+                addressError.value = 'Could not find address on map. Please check the address.';
+            } else {
+                addressError.value = 'Network error or geocoding service unavailable. Please try again.';
+            }
+            customerMapSrc.value = `https://www.openstreetmap.org/export/embed.html?bbox=106.6300, -6.2000, 106.6300, -6.2000&layer=mapnik&marker=-6.2000,106.6300`;
+        }
+    } else {
+        console.log('Address input is empty, setting default map.');
+        addressError.value = ''; // Hapus error jika alamat kosong
+        isAddressGeocodedValid.value = false; // Alamat kosong tidak valid secara geocoding
+        customerMapSrc.value = `https://www.openstreetmap.org/export/embed.html?bbox=106.6300, -6.2000, 106.6300, -6.2000&layer=mapnik&marker=-6.2000,106.6300`;
+    }
+};
+
+// Terapkan debounce pada fungsi watcher
+const debouncedUpdateMap = debounce(updateMapBasedOnAddress, 500);
+
+// Watcher untuk memantau perubahan pada alamat pelanggan
+watch(() => customerForm.value.address, (newAddress) => {
+    debouncedUpdateMap(newAddress);
+}, { immediate: true });
+
 
 const createCustomer = async () => {
+    // Validasi tambahan sebelum submit
+    if (!customerForm.value.address) {
+        Swal.fire({
+            title: 'Validation Error',
+            text: 'Address field is required.',
+            icon: 'error',
+            confirmButtonText: 'OK'
+        });
+        return; // Hentikan submit
+    }
+
+    if (!isAddressGeocodedValid.value) {
+        Swal.fire({
+            title: 'Address Not Valid',
+            text: 'Please ensure the address is correct and can be located on the map before submitting.',
+            icon: 'error',
+            confirmButtonText: 'OK'
+        });
+        return; // Hentikan submit
+    }
+
     try {
         const response = await axios.post('/api/customers', customerForm.value, {
             headers: {
@@ -255,24 +377,15 @@ const createCustomer = async () => {
 
         console.log('Customer created:', response.data)
 
+        // Reset form setelah berhasil
         customerForm.value = {
-            name: '',
-            company_name: '',
-            email: '',
-            phone: '',
-            address: '',
-            city: '',
-            province: '',
-            postal_code: '',
-            country: '',
-            bank_account: '',
-            bank_name: '',
-            npwp_number: '',
-            siup_number: '',
-            nib_number: '',
-            business_type: '',
-            note: ''
-        }
+            name: '', company_name: '', email: '', phone: '', address: '', city: '',
+            province: '', postal_code: '', country: '', bank_account: '', bank_name: '',
+            npwp_number: '', siup_number: '', nib_number: '', business_type: '', note: ''
+        };
+        addressError.value = ''; // Bersihkan error setelah submit berhasil
+        isAddressGeocodedValid.value = false; // Reset status validasi
+
 
         Swal.fire({
             title: 'Success!',
@@ -319,10 +432,5 @@ onMounted(async () => {
     if (!token) {
         router.visit('/')
     }
-
 })
-
-
-
-
 </script>

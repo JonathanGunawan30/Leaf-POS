@@ -64,9 +64,9 @@ Route::middleware(['auth:api'])->group(function () {
         // UNIT MANAGEMENT
         Route::post("/units", [\App\Http\Controllers\UnitController::class, "store"]);
         Route::get("/units/trashed", [\App\Http\Controllers\UnitController::class, "trashed"]);
-        Route::get("/units/{id}", [\App\Http\Controllers\UnitController::class, "show"]);
+
         Route::patch("/units/{id}", [\App\Http\Controllers\UnitController::class, "update"]);
-        Route::get("/units", [\App\Http\Controllers\UnitController::class, "index"]);
+
         Route::delete("/units/{id}", [\App\Http\Controllers\UnitController::class, "delete"]);
         Route::patch("/units/{id}/restore", [\App\Http\Controllers\UnitController::class, "restore"]);
         Route::delete("/units/{id}/force", [\App\Http\Controllers\UnitController::class, "force"]);
@@ -101,9 +101,9 @@ Route::middleware(['auth:api'])->group(function () {
         // TAX MANAGEMENT
         Route::post("/taxes", [\App\Http\Controllers\TaxController::class, "store"]);
         Route::get("/taxes/trashed", [\App\Http\Controllers\TaxController::class, "trashed"]);
-        Route::get("/taxes/{id}", [\App\Http\Controllers\TaxController::class, "show"]);
+
         Route::patch("/taxes/{id}", [\App\Http\Controllers\TaxController::class, "update"]);
-        Route::get("/taxes", [\App\Http\Controllers\TaxController::class, "index"]);
+
         Route::delete("/taxes/{id}", [\App\Http\Controllers\TaxController::class, "delete"]);
         Route::patch("/taxes/{id}/restore", [\App\Http\Controllers\TaxController::class, "restore"]);
         Route::delete("/taxes/{id}/force", [\App\Http\Controllers\TaxController::class, "force"]);
@@ -115,9 +115,9 @@ Route::middleware(['auth:api'])->group(function () {
         // Category Product
         Route::post("/categories", [\App\Http\Controllers\CategoryController::class, "store"]);
         Route::get("/categories/trashed", [\App\Http\Controllers\CategoryController::class, "trashed"]);
-        Route::get("/categories/{id}", [\App\Http\Controllers\CategoryController::class, "show"]);
+
         Route::patch("/categories/{id}", [\App\Http\Controllers\CategoryController::class, "update"]);
-        Route::get("/categories", [\App\Http\Controllers\CategoryController::class, "index"]);
+
         Route::delete("/categories/{id}", [\App\Http\Controllers\CategoryController::class, "delete"]);
         Route::patch("/categories/{id}/restore", [\App\Http\Controllers\CategoryController::class, "restore"]);
         Route::delete("/categories/{id}/force", [\App\Http\Controllers\CategoryController::class, "force"]);
@@ -135,9 +135,7 @@ Route::middleware(['auth:api'])->group(function () {
         // PRODUCT MANAGEMENT
         Route::post("/products", [\App\Http\Controllers\ProductController::class, "store"]);
         Route::get("/products/trashed", [\App\Http\Controllers\ProductController::class, "trashed"]);
-        Route::get("/products/{id}", [\App\Http\Controllers\ProductController::class, "show"]);
         Route::patch("/products/{id}", [\App\Http\Controllers\ProductController::class, "update"]);
-        Route::get("/products", [\App\Http\Controllers\ProductController::class, "index"]);
         Route::delete("/products/{id}", [\App\Http\Controllers\ProductController::class, "delete"]);
         Route::patch("/products/{id}/restore", [\App\Http\Controllers\ProductController::class, "restore"]);
         Route::delete("/products/{id}/force", [\App\Http\Controllers\ProductController::class, "force"]);
@@ -173,6 +171,8 @@ Route::middleware(['auth:api'])->group(function () {
         Route::delete("/purchase-returns/{id}/force", [\App\Http\Controllers\PurchaseReturnController::class, "force"]);
 
     });
+
+
 
     Route::middleware(["role:Admin,Sales"])->group(function () {
         // CUSTOMER MANAGEMENT
@@ -227,7 +227,7 @@ Route::middleware(['auth:api'])->group(function () {
     });
 
     // INVENTORY MANAGEMENT
-    Route::middleware(["role:Admin, Inventory"])->group(function () {
+    Route::middleware(["role:Admin,Inventory"])->group(function () {
         // Stock Opname
         Route::post("/stock-opnames", [\App\Http\Controllers\StockOpnameController::class, 'store']);
         Route::get("/stock-opnames/trashed", [\App\Http\Controllers\StockOpnameController::class, 'trashed']);
@@ -248,6 +248,28 @@ Route::middleware(['auth:api'])->group(function () {
         Route::get("/stock-movements/{id}", [\App\Http\Controllers\StockMovementController::class, 'show']);
     });
 
+    Route::middleware(["role:Admin,Purchasing,Finance"])->group(function () {
+
+        // UNIT MANAGEMENT - READ ONLY
+        Route::get("/units", [\App\Http\Controllers\UnitController::class, "index"]);
+        Route::get("/units/{id}", [\App\Http\Controllers\UnitController::class, "show"]);
+
+        // TAX MANAGEMENT - READ ONLY
+        Route::get("/taxes", [\App\Http\Controllers\TaxController::class, "index"]);
+        Route::get("/taxes/{id}", [\App\Http\Controllers\TaxController::class, "show"]);
+    });
+
+
+    Route::middleware(["role:Admin,Purchasing,Inventory,Sales"])->group(function () {
+        // PRODUCT MANAGEMENT - READ ONLY
+        Route::get("/products", [\App\Http\Controllers\ProductController::class, "index"]);
+        Route::get("/products/{id}", [\App\Http\Controllers\ProductController::class, "show"]);
+
+        // CATEGORY PRODUCT
+        Route::get("/categories", [\App\Http\Controllers\CategoryController::class, "index"]);
+        Route::get("/categories/{id}", [\App\Http\Controllers\CategoryController::class, "show"]);
+    });
+
 });
 Route::middleware(['auth:api'])->group(function () {
 
@@ -265,3 +287,4 @@ Route::post('/notifications/webhook', [NotificationController::class, 'webhook']
 
 Route::post('/forgot-password', [UserController::class, 'sendResetLink']);
 Route::post('/reset-password', [UserController::class, 'resetPassword']);
+

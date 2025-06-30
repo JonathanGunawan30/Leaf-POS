@@ -354,10 +354,13 @@
 
 <script setup>
 import Sidebar from '@/Components/Sidebar.vue'
-import {onMounted, ref, computed, watch} from 'vue'
+import {computed, onMounted, ref, watch} from 'vue'
 import axios from 'axios'
 import Swal from "sweetalert2";
-const googleMapsKey = import.meta.env.VITE_Maps_API_KEY;
+
+const googleMapsKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+const shippingOriginAddress = ref(import.meta.env.VITE_SHIPPING_ORIGIN_ADDRESS);
+
 
 const token = localStorage.getItem('X-API-TOKEN')
 
@@ -467,9 +470,14 @@ const formattedShippingDistance = computed({
 });
 
 const googleMapsSrc = computed(() => {
-    if (selectedCustomerAddress.value && googleMapsKey) {
-        const encodedAddress = encodeURIComponent(selectedCustomerAddress.value);
-        return `https://maps.google.com/maps?q=${encodedAddress}&z=15&output=embed&key=${googleMapsKey}`;
+    if (saleForm.value.customer_id && selectedCustomerAddress.value && googleMapsKey && shippingOriginAddress.value) {
+        const encodedOrigin = encodeURIComponent(shippingOriginAddress.value);
+        const encodedDestination = encodeURIComponent(selectedCustomerAddress.value);
+        return `https://www.google.com/maps/embed/v1/directions?key=${googleMapsKey}&origin=${encodedOrigin}&destination=${encodedDestination}&mode=driving`;
+    } else if (googleMapsKey) {
+        const defaultLocation = 'Tangerang, Indonesia';
+        const encodedLocation = encodeURIComponent(defaultLocation);
+        return `https://www.google.com/maps/embed/v1/place?key=${googleMapsKey}&q=${encodedLocation}&zoom=12`;
     }
     return '';
 });

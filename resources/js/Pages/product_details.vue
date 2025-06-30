@@ -1,81 +1,6 @@
-<script setup>
-import {ref, onMounted, computed} from 'vue'
-import axios from 'axios'
-import {usePage, router} from '@inertiajs/vue3'
-import Sidebar from '@/Components/Sidebar.vue'
-import Navbar from '@/Components/Navbar.vue'
-
-const page = usePage()
-const product = ref(null)
-const loading = ref(true)
-const error = ref(null)
-const referrer = ref('/products/all') // Default fallback
-
-const productId = computed(() => {
-
-    return page.props.product?.id ||
-        page.props.route?.params?.id ||
-        window.location.pathname.replace(/\/$/, '').split('/').pop()
-})
-
-onMounted(async () => {
-    try {
-        console.log('Product ID:', productId.value)
-
-        // Check if we came from the restore page
-        if (document.referrer.includes('/products/restore')) {
-            referrer.value = '/products/restore'
-        } else if (document.referrer.includes('/products/all')) {
-            referrer.value = '/products/all'
-        } else if (localStorage.getItem('productReferrer')) {
-            // Fallback to localStorage if document.referrer is not reliable
-            referrer.value = localStorage.getItem('productReferrer')
-        }
-
-        // Store current referrer for future use
-        localStorage.setItem('productReferrer', referrer.value)
-
-        if (!productId.value || isNaN(productId.value)) {
-            throw new Error('Invalid product ID')
-        }
-
-        const response = await axios.get(`/api/products/${productId.value}`)
-        console.log('API Response:', response)
-
-        if (!response.data) {
-            throw new Error('Product data not found in response')
-        }
-
-        product.value = response.data.data
-    } catch (err) {
-        error.value = err.message
-        console.error('Error details:', {
-            message: err.message,
-            response: err.response?.data,
-            status: err.response?.status
-        })
-        // Redirect to the referrer page or fallback to all products
-        router.visit(referrer.value)
-    } finally {
-        loading.value = false
-    }
-})
-
-function formatCurrency(value) {
-    if (!value) return 'Rp.0'
-    return new Intl.NumberFormat('id-ID', {
-        style: 'currency',
-        currency: 'IDR',
-        minimumFractionDigits: 0,
-    }).format(value)
-}
-
-</script>
-
 <template>
     <div v-if="loading" class="py-10 text-gray-500">
         <sidebar>
-            <!-- Skeleton loading bang -->
             <div class="bg-white rounded-lg p-5 mb-4 shadow-sm animate-pulse">
                 <div class="h-6 bg-gray-300 rounded w-40 mb-4"></div>
                 <div class="flex justify-start items-start flex-col gap-2.5 py-[15px] px-[58px]">
@@ -97,10 +22,8 @@ function formatCurrency(value) {
         </sidebar>
     </div>
 
-
     <div v-else>
         <div class="bg-gray-100">
-            <!-- Sidebar -->
             <Sidebar>
 
                 <div class="bg-white rounded-lg p-5 mb-4 shadow-sm">
@@ -248,6 +171,15 @@ function formatCurrency(value) {
                                             style="height: 45px"><span
                                             class="text-[#2E2E2E] text-[15px] leading-6"><p>{{ product?.brand || '-' }}</p></span></div>
                                     </div>
+                                    <div class="flex flex-1 justify-start items-start flex-col gap-[5px] h-[74px]"
+                                         style="height: 74px">
+                                        <div class="flex self-stretch justify-start items-start flex-col gap-[5px]"><p
+                                            class="self-stretch text-[#000000] text-sm font-medium leading-6">Tax</p></div>
+                                        <div
+                                            class="flex self-stretch justify-start items-center flex-row gap-2.5 py-[9px] px-[15px] bg-[#FFFFFF] border-solid border-[#AEADAD] border rounded-[10px] h-[45px]"
+                                            style="height: 45px"><span
+                                            class="text-[#2E2E2E] text-[15px] leading-6">{{ product?.taxes?.[0]?.rate ?? 0 }}%</span></div>
+                                    </div>
                                 </div>
                                 <div class="flex self-stretch justify-start items-start flex-col gap-[5px]">
                                     <div class="flex self-stretch justify-start items-start flex-col gap-[5px]"><p
@@ -308,6 +240,78 @@ function formatCurrency(value) {
             </Sidebar>
         </div>
     </div>
-
-
 </template>
+<script setup>
+import {ref, onMounted, computed} from 'vue'
+import axios from 'axios'
+import {usePage, router} from '@inertiajs/vue3'
+import Sidebar from '@/Components/Sidebar.vue'
+import Navbar from '@/Components/Navbar.vue'
+
+const page = usePage()
+const product = ref(null)
+const loading = ref(true)
+const error = ref(null)
+const referrer = ref('/products/all')
+
+const productId = computed(() => {
+    return page.props.product?.id ||
+        page.props.route?.params?.id ||
+        window.location.pathname.replace(/\/$/, '').split('/').pop()
+})
+
+onMounted(async () => {
+
+    const token = localStorage.getItem('X-API-TOKEN');
+    if (token) {
+        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
+    }
+
+    try {
+        console.log('Product ID:', productId.value)
+
+        if (document.referrer.includes('/products/restore')) {
+            referrer.value = '/products/restore'
+        } else if (document.referrer.includes('/products/all')) {
+            referrer.value = '/products/all'
+        } else if (localStorage.getItem('productReferrer')) {
+            referrer.value = localStorage.getItem('productReferrer')
+        }
+
+        localStorage.setItem('productReferrer', referrer.value)
+
+        if (!productId.value || isNaN(productId.value)) {
+            throw new Error('Invalid product ID')
+        }
+
+        const response = await axios.get(`/api/products/${productId.value}`)
+        console.log('API Response:', response)
+
+        if (!response.data) {
+            throw new Error('Product data not found in response')
+        }
+
+        product.value = response.data.data
+    } catch (err) {
+        error.value = err.message
+        console.error('Error details:', {
+            message: err.message,
+            response: err.response?.data,
+            status: err.response?.status
+        })
+        router.visit(referrer.value)
+    } finally {
+        loading.value = false
+    }
+})
+
+function formatCurrency(value) {
+    if (value === null || value === undefined) return 'Rp.0';
+    return new Intl.NumberFormat('id-ID', {
+        style: 'currency',
+        currency: 'IDR',
+        minimumFractionDigits: 0,
+    }).format(value);
+}
+
+</script>

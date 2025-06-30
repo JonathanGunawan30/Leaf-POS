@@ -1,5 +1,5 @@
 <template>
-    <div class="bg-gray-100 min-h-screen p-4">
+    <div class="bg-gray-100 min-h-screen">
         <sidebar>
             <div class="flex justify-start items-start flex-col gap-4">
                 <div
@@ -39,15 +39,18 @@
                 <div class="flex self-stretch flex-col gap-4 p-5 bg-white rounded-xl shadow-sm">
                     <p class="self-stretch text-gray-900 text-base font-semibold">Scanner Mode</p>
                     <div class="flex gap-6">
+
                         <label class="flex items-center gap-2 cursor-pointer p-2 rounded-lg hover:bg-gray-50 transition-colors">
                             <input type="radio" v-model="scannerMode" value="camera" class="text-blue-600 focus:ring-blue-500">
-                            <i class="fas fa-camera text-blue-600 text-lg"></i>
+                            <i class="fas fa-camera text-gray-500 text-lg"></i>
                             <span class="text-sm text-gray-700 font-medium">Camera Scanner</span>
                         </label>
-                        <label class="flex items-center gap-2 cursor-pointer p-2 rounded-lg hover:bg-gray-50 transition-colors">
+
+                        <label class="flex items-center gap-2 cursor-pointer p-2 rounded-lg border border-blue-200 bg-blue-50 hover:bg-blue-100 transition-colors relative">
                             <input type="radio" v-model="scannerMode" value="physical" class="text-blue-600 focus:ring-blue-500">
                             <i class="fas fa-barcode text-blue-600 text-lg"></i>
-                            <span class="text-sm text-gray-700 font-medium">Physical Scanner</span>
+                            <span class="text-sm text-blue-800 font-medium">Physical Scanner</span>
+                            <span class="absolute -top-2 -right-2 bg-blue-600 text-white text-xs px-2 py-0.5 rounded-full">Recommended</span>
                         </label>
                     </div>
                 </div>
@@ -300,53 +303,46 @@ const handlePhysicalScannerChange = (event) => {
 }
 
 const handlePhysicalScannerInput = async (event) => {
-    event.preventDefault() // Prevent form submission
+    event.preventDefault()
 
     const barcode = physicalScannerValue.value.trim()
 
     if (!barcode) {
         physicalScannerStatus.value.error = 'Please scan a barcode.'
-        // Still clear the value in case it had spaces only
         physicalScannerValue.value = ''
-        // Re-focus immediately
         nextTick(() => physicalScannerInput.value?.focus())
         return
     }
 
-    if (barcode.length < 3) { // Minimum barcode length for reasonable scan
+    if (barcode.length < 3) {
         physicalScannerStatus.value.error = 'Barcode too short. Please scan a valid barcode.'
-        physicalScannerValue.value = '' // Clear short barcode
-        // Re-focus immediately
+        physicalScannerValue.value = ''
         nextTick(() => physicalScannerInput.value?.focus())
         return
     }
 
-    // Set processing state
     physicalScannerStatus.value.isProcessing = true
-    physicalScannerStatus.value.error = '' // Clear previous error
+    physicalScannerStatus.value.error = ''
 
     try {
         await processScannedBarcode(barcode, 'physical')
 
         physicalScannerStatus.value.lastScanned = barcode
         physicalScannerStatus.value.isProcessing = false
-        physicalScannerStatus.value.error = '' // Ensure no error message remains on success
+        physicalScannerStatus.value.error = ''
 
     } catch (error) {
         physicalScannerStatus.value.isProcessing = false
-        // The processScannedBarcode function already sets physicalScannerStatus.value.error
-        // so we don't need to set it here again, just log for debugging.
+
         console.error('Physical scanner processing error:', error)
     } finally {
-        // ALWAYS clear the input field after processing (success or failure)
         physicalScannerValue.value = ''
-        // ALWAYS re-focus the input for continuous scanning
         nextTick(() => {
             setTimeout(() => {
                 if (physicalScannerInput.value) {
                     physicalScannerInput.value.focus()
                 }
-            }, 100); // Small delay to ensure the DOM is ready for focus
+            }, 100);
         });
     }
 }
@@ -462,14 +458,12 @@ const createBeepSound = () => {
         const blob = new Blob([buffer], { type: 'audio/wav' })
         return URL.createObjectURL(blob)
     } catch (error) {
-        console.error('Failed to create beep sound:', error)
         return null
     }
 }
 
 const initAudioPool = () => {
     try {
-        console.log('Initializing audio pool...')
 
         const beepUrl = createBeepSound()
         const fallbackBeepUrl = 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmAaAzSIzPLU'
@@ -483,10 +477,8 @@ const initAudioPool = () => {
             audioPool.push(audio)
         }
 
-        console.log('✅ Audio pool initialized with', maxPoolSize, 'instances')
         return true
     } catch (error) {
-        console.error('Failed to initialize audio pool:', error)
         return false
     }
 }
